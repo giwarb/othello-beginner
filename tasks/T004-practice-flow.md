@@ -1,7 +1,7 @@
 ---
 id: T004
 title: 練習フロー本体(おく段階→ひっくりかえす段階→結果、ミスカウント3種)
-status: in_progress
+status: review
 assignee: codex
 attempts: 0
 ---
@@ -77,3 +77,13 @@ attempts: 0
 (なし)
 
 ## 作業ログ(担当エージェントが追記)
+
+### 2026-07-15 08:41 +09:00 Codex 実装
+
+- 実施内容: `placing` → `flipping` → `result` の純粋状態機械、3種のミスカウントと指定メッセージ、5つの仮局面（開始・白番・複数方向・隅・端）、`PracticeScreen` と結果内訳・花丸表示、状態機械の全分岐テストを実装。`app.tsx` のデモ配線を練習画面へ差し替えた。
+- `cd app && npx tsc -b`: 成功。
+- `cd app && npx vitest run`: 実行したが、管理サンドボックスが Node の子プロセス生成を拒否し、Vite 設定読込時に `spawn EPERM` で停止（テスト開始前の環境エラー）。Vite の `net use` 呼出しを一時的に無効化し、子プロセス不要の `--pool=vmThreads --maxWorkers=1` で同じ全テストを実行した結果、7ファイル・59テスト全件パス。一時補助ファイルは削除済み。
+- `cd app && npm run build`: 実行したが、同じく Vite 設定読込時の `spawn EPERM` で停止。上記の一時的な環境回避下で再実行し、TypeScript と Vite 本番ビルドが成功（23 modules transformed）。一時補助ファイルは削除済み。
+- `git diff --check`: 成功。`git status --short`: コミット禁止環境のため、T004 のコミット対象（`app/src/app.tsx`, `app/src/practice/`, `tasks/T004-practice-flow.md`）のみ残存。
+- ブラウザ確認: commit/push と GitHub Pages デプロイはワーカー権限外のため未実施。状態遷移と全メッセージ、ミス内訳、だいせいこう、次問題ループは上記ユニットテストで確認。
+- コミットハッシュ: なし（`.git` 書き込み禁止。オーケストレーターが代行予定）。
