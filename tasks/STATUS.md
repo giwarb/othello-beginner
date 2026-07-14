@@ -6,7 +6,7 @@
 
 ## 現在地
 
-**T003 は redo 1回目(Codex に切替委譲中)。** verifier 合格・codex-review 不合格(重大2件: 300ms内の連続盤面更新でアニメ用CSSクラスが残留する タイマー管理バグ / デモ文言に算用数字)。ルーティング基準4により redo は Codex 担当。T004(練習フロー)は T003 合格後に委譲(Board.tsx が競合するため直列)。
+**T003 redo 修正完了(20c9bc2、位置別タイマー化+ひらがな文言+color-scheme固定、42テスト)。verifier+codex-review で再検証中。** 合格すれば T004(練習フロー)を Codex へ委譲(Board.tsx が競合するため直列)。
 
 - 実装ロードマップ(設計書 §3-6 から分解、詳細タスクは着手時に起票):
   1. T001 scaffold(Vite+Preact+TS+Vitest+Pages デプロイ)← done
@@ -23,7 +23,7 @@
 
 | ID | タスク | 担当 | 状態 | 試行 |
 |---|---|---|---|---|
-| T003 | 盤面 UI(SVG 盤・石・タップ・メッセージ帯) | codex(gpt-5.6-sol)※redo | in_progress | 1 |
+| T003 | 盤面 UI(SVG 盤・石・タップ・メッセージ帯) | codex(gpt-5.6-sol)※redo | review | 1 |
 | T004 | 練習フロー本体(状態機械+画面+ミスカウント) | codex(gpt-5.6-sol) | todo | 0 |
 
 ## 有効な方針・申し送り(今後のタスクに効くもの)

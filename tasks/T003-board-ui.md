@@ -1,7 +1,7 @@
 ---
 id: T003
 title: 盤面 UI コンポーネント(SVG 盤・石・タップ・メッセージ帯)
-status: in_progress
+status: review
 assignee: codex
 attempts: 1
 ---
@@ -115,3 +115,16 @@ attempts: 1
   - `app/src/components/Board.tsx` で `flippedPositions(previous, cells)` により前回描画からの色変化マスを検出して `flipping` state に格納し、該当石の `<g>` に `disc-flipping` クラスを付与する実装を確認(色変化時にアニメーションが適用される仕組みが実在)
   - → **合格**(実動作の厳密確認は要件上不要のためコードレベルの確認に留めた)
 - 総合判定: 全5基準 合格
+
+### 2026-07-15 08:23 redo 1回目 修正・検証
+
+- 実施内容:
+  - `app/src/components/Board.tsx` の反転状態管理を、盤面更新 effect の一括タイマーから位置ごとの独立タイマーへ変更。300ms以内に別位置が更新されても、各位置の完了処理が独立して `flipping` 集合から除去するよう修正
+  - `app/src/components/boardAnimation.ts` に反転集合の更新と位置別タイマー管理を抽出し、`boardAnimation.test.ts` に fake timer を使った100ms間隔の連続更新回帰テストを追加
+  - `app/src/app.tsx` の仮メッセージを、算用数字を含まない「ここを　おしたよ」へ変更
+  - `app/src/index.css` の `color-scheme` を `light` に固定
+- 実行コマンドと結果:
+  - `cd app && npx vitest run` → `Test Files 6 passed (6)` / `Tests 42 passed (42)`
+  - `cd app && npm run build` → `tsc -b && vite build` 成功（20 modules transformed、警告なし）
+  - 実行環境のサンドボックスが Vite の `net use` と Vitest の fork worker を `spawn EPERM` で拒否するため、検証中のみ追跡外の Vite 実装で `net use` 最適化を無効化し、`vite.config.ts` の pool を threads に設定。上記コマンド完了後に両方とも元へ復元済み
+- コミットハッシュ: 未コミット（実装ワーカー環境は `.git` 書き込み禁止）
