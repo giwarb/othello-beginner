@@ -1,7 +1,7 @@
 ---
 id: T003
 title: 盤面 UI コンポーネント(SVG 盤・石・タップ・メッセージ帯)
-status: in_progress
+status: review
 assignee: implementer
 attempts: 0
 ---
@@ -64,3 +64,24 @@ attempts: 0
 (なし)
 
 ## 作業ログ(担当エージェントが追記)
+
+### 2026-07-15 実装・検証・デプロイ完了
+
+- 実施内容:
+  - `app/src/components/boardGeometry.ts`(盤ジオメトリの純関数: 位置→行列/座標変換、盤面正規化、色反転差分検出)と `boardGeometry.test.ts` を新規作成
+  - `app/src/components/Board.tsx` + `Board.css`: SVGのタップ可能な8x8盤。石はグラデーションで立体感、直前手は光彩枠、ヒント用ハイライトは点滅、色が変わったマスは横潰れ反転アニメーション(300ms、次タップの受付はブロックしない)
+  - `app/src/components/MessageBar.tsx` + `MessageBar.css` と純関数 `messageBarLogic.ts`(`shouldPulse`)+ `messageBarLogic.test.ts`: メッセージ帯。空でも最小高さを保持し、メッセージ変化時のみポップアニメーション
+  - `app/src/components/TurnBadge.tsx` + `TurnBadge.css` と純関数 `turnBadgeLogic.ts`(`turnLabel`)+ `turnBadgeLogic.test.ts`: 「あなたは　くろ／しろ　です」+ 石アイコン
+  - `app/src/app.tsx`: 開始局面の盤+手番表示(くろ)+メッセージ帯を表示し、マスタップで `${pos}ばんめの ますを おしたよ` という仮メッセージを出すデモ配線に差し替え
+  - `app/src/index.css`: 幼児向けに基準フォントサイズ拡大、レイアウトをflex縦積みに変更
+  - 注意点: Windowsの大文字小文字を区別しないファイルシステムで `MessageBar.tsx`/`messageBar.ts`、`TurnBadge.tsx`/`turnBadge.ts` の組がTSのモジュール解決で衝突したため、純関数ファイルを `messageBarLogic.ts` / `turnBadgeLogic.ts` にリネームして解消(この経緯により最終ファイル名は変更対象記載と異なる)
+- 実行コマンドと結果:
+  - `cd app && npx vitest run` → `Test Files 5 passed (5)` `Tests 41 passed (41)`
+  - `cd app && npm run build` → `tsc -b && vite build` 成功(`dist/` 生成、警告なし)
+- レスポンシブ確認: `npm run dev` をポート5183で起動し、Claude Browserツール(`preview_start` url指定 / `resize_window` / `javascript_tool`)でビューポート幅375px(スマホ縦相当)と1024px(タブレット横相当)それぞれで `.board-wrapper` の `getBoundingClientRect()` を計測。結果は375px時 345x345(正方形)、1024px時 640x640(正方形)、いずれも `document.documentElement.scrollWidth > window.innerWidth` は false(横スクロールなし)。確認後、開発サーバは対象PIDのみ `Stop-Process` で停止
+- 本番確認: コミット `09e1a25` を `git push origin main`、`gh run watch 29375261770 --exit-status` でGitHub Actionsのbuild/deployとも成功を確認。`https://giwarb.github.io/othello-beginner/` を実ブラウザで開き、`read_page`で64マスのボタンと手番表示「あなたは　くろ　です」を確認、`javascript_tool`で開始局面の石が黒2・白2(`disc-shape-b`×2, `disc-shape-w`×2)であることを確認、マスタップで `get_page_text` によりメッセージ「45ばんめの ますを おしたよ」が表示されることを確認。同URLで375px/1024pxのレスポンシブ確認(上記と同じ計測)も実施し、いずれも正方形・横スクロールなしを確認
+- 一時ファイル: スクリーンショットの保存は行わず、上記の数値・テキスト確認記録のみで代替(Browserのスクリーンショットアクションがこの環境でタイムアウトしたため、`read_page`/`get_page_text`/`javascript_tool`による確認に切り替え)。リポジトリ内に一時ファイルは残していない
+- コミットハッシュ: `09e1a25`(push済み、mainに反映)
+- 仕様どおりにできなかった点・判断に迷った点:
+  - ファイル名衝突回避のため、`app/src/components/messageBar.ts`→`messageBarLogic.ts`、`turnBadge.ts`→`turnBadgeLogic.ts` と、タスク文中に直接名指しはされていない命名に変更(コンポーネント本体 `MessageBar.tsx`/`TurnBadge.tsx` は仕様通りの名前で維持)
+  - それ以外は仕様通り実装。デモの仮メッセージ文言・アニメーション時間(300ms)・ハイライト演出(点滅)・強調石の光彩表現は要件の許容範囲内で実装側の裁量とした
