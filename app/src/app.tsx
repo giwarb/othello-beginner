@@ -12,7 +12,7 @@ export function App() {
 
   function handleCellTap(pos: number) {
     setLastTapped(pos)
-    setMessage(`${pos}ばんめの ますを おしたよ`)
+    setMessage('ここを　おしたよ')
   }
 
   return (

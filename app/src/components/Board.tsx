@@ -1,5 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
+import { useEffect, useMemo, useReducer, useRef } from 'preact/hooks'
 import type { Board as BoardState } from '../core/othello'
+import {
+  cancelFlipCompletions,
+  scheduleFlipCompletions,
+  updateFlippingPositions,
+  type FlipTimer,
+} from './boardAnimation'
 import {
   BOARD_PIXELS,
   BOARD_SIZE,
@@ -10,8 +16,6 @@ import {
   normalizeBoard,
 } from './boardGeometry'
 import './Board.css'
-
-const FLIP_ANIMATION_MS = 300
 
 let boardInstanceCount = 0
 
@@ -33,7 +37,10 @@ export function Board({ board, highlights = [], lastMove, onCellTap }: BoardProp
   const cells = useMemo(() => normalizeBoard(board), [boardKey])
 
   const previousCellsRef = useRef<BoardState | null>(null)
-  const [flipping, setFlipping] = useState<ReadonlySet<number>>(new Set())
+  const [flipping, updateFlipping] = useReducer(updateFlippingPositions, new Set<number>())
+  const flipTimersRef = useRef(new Map<number, FlipTimer>())
+
+  useEffect(() => () => cancelFlipCompletions(flipTimersRef.current), [])
 
   useEffect(() => {
     const previous = previousCellsRef.current
@@ -47,18 +54,10 @@ export function Board({ board, highlights = [], lastMove, onCellTap }: BoardProp
       return
     }
 
-    setFlipping((current) => new Set([...current, ...changed]))
-    const timer = setTimeout(() => {
-      setFlipping((current) => {
-        const next = new Set(current)
-        for (const pos of changed) {
-          next.delete(pos)
-        }
-        return next
-      })
-    }, FLIP_ANIMATION_MS)
-
-    return () => clearTimeout(timer)
+    updateFlipping({ type: 'start', positions: changed })
+    scheduleFlipCompletions(changed, flipTimersRef.current, (position) => {
+      updateFlipping({ type: 'finish', position })
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardKey])
 
