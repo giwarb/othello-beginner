@@ -1,7 +1,7 @@
 ---
 id: T002
 title: オセロコアロジック(合法手・裏返し列挙・着手適用)+ ユニットテスト
-status: review
+status: done
 assignee: codex
 attempts: 0
 ---
@@ -66,3 +66,12 @@ attempts: 0
   - cd app && npx vitest run: 成功 (2 files / 22 tests passed)。実行環境が子プロセス生成を禁止するため、検証中のみ Vite の net use 呼び出しを無効化し Vitest pool を threads に設定。検証後に両方とも原状復帰済み。
   - cd app && npm run build: 成功 (tsc -b && vite build)。上記の一時的な環境回避下で実行し、回避変更は原状復帰済み。
   - git status --short: タスク成果物 app/src/core/ と本作業ログのみ。Codex 環境ではコミット不可のため、コミットハッシュなし (オーケストレーターが代行予定)。
+
+- 2026-07-15 verifier(検証専任、コード修正なし): 対象実装 6461cd4 (main) を受け入れ基準に沿って独立検証。
+  - `cd app && npx vitest run` → PASS (Test Files 2 passed / Tests 22 passed, 3.25s)。子プロセス生成回避などの特別措置なしで通過。
+  - `cd app && npm run build` → PASS (`tsc -b && vite build` 成功、dist/ 生成)。
+  - `git status --short` → 出力なし(クリーン)。app/dist は .gitignore 対象で未追跡混入なし。
+  - 追加確認(自己参照テスト対策): `app/src/core/othello.test.ts` を精読し、期待値が実装呼び出しではなく手計算・盤面ジオメトリから独立に構築されていることを確認(例: 開始局面の合法手 `[19, 26, 37, 44]` は d3/c4/f5/e6 の行優先インデックスと手計算で一致、8方向テストは delta(±1,±7,±8,±9)から方向ごとに期待座標を手計算し一致、複数方向テストは8近傍全返しと整合、隅・端テスト(pos0, pos7)は盤外ラップが発生しないことをコード上のisOnBoard境界チェックと突き合わせて確認、パス/終局テストは手計算で hasAnyMove(b)=false/hasAnyMove(w)=true 等を再現)。自己参照(実装出力をそのまま期待値にする)パターンは見当たらず。
+  - API網羅確認: `app/src/core/othello.ts` に parseBoard/serializeBoard/initialBoard/legalMoves/flippedDiscs/applyMove/hasAnyMove/isGameOver/countDiscs が全て実装済み。flippedDiscs は要件2どおり1枚単位の配列を返す実装。applyMove はスプレッドで新配列を生成しイミュータブル、非合法手は例外。parseBoard/assertValidBoard は64文字・不正文字・不正長を例外化。
+  - テスト網羅確認(要件3の7項目): 開始局面4手/8方向/複数方向/端・隅(2ケース)/未閉鎖列/パス・終局(2ケース)/ラウンドトリップ(+不正入力3ケース)がすべて存在することを確認。
+  - 総合判定: 合格。
