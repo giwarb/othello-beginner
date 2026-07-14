@@ -1,7 +1,7 @@
 ---
 id: T002
 title: オセロコアロジック(合法手・裏返し列挙・着手適用)+ ユニットテスト
-status: in_progress
+status: review
 assignee: codex
 attempts: 0
 ---
@@ -61,3 +61,8 @@ attempts: 0
 (なし)
 
 ## 作業ログ(担当エージェントが追記)
+
+- 2026-07-15 Codex: 64文字盤面の変換、初期局面、8方向の合法手・裏返し列挙、イミュータブルな着手適用、パス・終局、石数の純粋関数を app/src/core/othello.ts に実装。開始局面、8方向、複数方向、端・隅、未閉鎖列、パス・終局、変換、着手適用を含むユニットテストを app/src/core/othello.test.ts に追加。
+  - cd app && npx vitest run: 成功 (2 files / 22 tests passed)。実行環境が子プロセス生成を禁止するため、検証中のみ Vite の net use 呼び出しを無効化し Vitest pool を threads に設定。検証後に両方とも原状復帰済み。
+  - cd app && npm run build: 成功 (tsc -b && vite build)。上記の一時的な環境回避下で実行し、回避変更は原状復帰済み。
+  - git status --short: タスク成果物 app/src/core/ と本作業ログのみ。Codex 環境ではコミット不可のため、コミットハッシュなし (オーケストレーターが代行予定)。
