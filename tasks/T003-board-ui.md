@@ -1,9 +1,9 @@
 ---
 id: T003
 title: 盤面 UI コンポーネント(SVG 盤・石・タップ・メッセージ帯)
-status: review
-assignee: implementer
-attempts: 0
+status: in_progress
+assignee: codex
+attempts: 1
 ---
 
 # T003: 盤面 UI コンポーネント(SVG 盤・石・タップ・メッセージ帯)
@@ -61,7 +61,15 @@ attempts: 0
 
 ## フィードバック(やり直し時にオーケストレーターが記入)
 
-(なし)
+### redo 1回目(2026-07-15、codex-review 不合格。レポート: `tasks/review/T003-board-ui-codex-review.md`)
+
+初回実装(コミット 09e1a25)に対する修正。**以下の3点だけを直すこと**(他のリファクタリングはしない):
+
+1. **[重大] 連続更新でアニメーション状態が壊れる**: `app/src/components/Board.tsx` の flipping 管理は、盤面が 300ms 以内に再更新されると effect cleanup が先行タイマーをキャンセルし、先に反転したマスの `disc-flipping` クラスが永久に残る(以後そのマスでアニメーションが再発火しない)。位置ごとに独立してクラス除去が働くように修正する(例: 位置ごとのタイマー管理、または animationend イベントでの除去)。修正の検証として、「300ms 以内に2回盤面を更新しても、両方の位置が最終的に flipping 集合から除去される」ことを純関数またはタイマーロジックの単体テストで担保する(Testing Library の導入までは、タイマー/集合管理ロジックを純関数に抽出してテストする方式でよい)。
+2. **[重大] デモ文言の算用数字**: `app/src/app.tsx` の仮メッセージ `${pos}ばんめの ますを おしたよ` が全ひらがな要件(要件6)違反。数字を含まない文言(例: 「ここを　おしたよ」)に変更する。
+3. **[中・ついでに修正] ダークモードで文字が読めない**: `app/src/index.css` が `color-scheme: light dark` のまま背景を明色固定しており、ダーク環境で明色文字×明色背景になる。`color-scheme: light` に固定する(最小修正でよい)。
+
+受け入れ基準は元のものに加えて、上記1のテストが `npx vitest run` に含まれること。
 
 ## 作業ログ(担当エージェントが追記)
 
@@ -85,3 +93,25 @@ attempts: 0
 - 仕様どおりにできなかった点・判断に迷った点:
   - ファイル名衝突回避のため、`app/src/components/messageBar.ts`→`messageBarLogic.ts`、`turnBadge.ts`→`turnBadgeLogic.ts` と、タスク文中に直接名指しはされていない命名に変更(コンポーネント本体 `MessageBar.tsx`/`TurnBadge.tsx` は仕様通りの名前で維持)
   - それ以外は仕様通り実装。デモの仮メッセージ文言・アニメーション時間(300ms)・ハイライト演出(点滅)・強調石の光彩表現は要件の許容範囲内で実装側の裁量とした
+
+### 2026-07-15 08:14 verifier 受け入れ検証
+
+- 対象コミット: `09e1a25`(main HEAD, push済み)
+- 実行1: `cd app && npx vitest run` → `Test Files 5 passed (5)` / `Tests 41 passed (41)` → **合格**
+- 実行2: `cd app && npm run build` → `tsc -b && vite build` 成功、`dist/index.html` `dist/assets/index-*.css` `dist/assets/index-*.js` 生成、エラー・警告なし → **合格**
+- 実行3: 本番URL確認(実装者記録に頼らず自分で再実施)
+  - `gh run list --limit 5` で `09e1a25` に対応するrun `29375261770`(Deploy to GitHub Pages)が `completed success` であることを確認
+  - Claude Browserツールで `https://giwarb.github.io/othello-beginner/` を開き、`read_page` で「おせろばん」グループ内に `0ばんめの ます`〜`63ばんめの ます` の64ボタンと `あなたは くろ です` の手番表示を確認
+  - `javascript_tool` で `document.querySelectorAll('.disc-shape-b').length` = 2, `.disc-shape-w'` = 2 を確認(開始局面 黒2・白2)
+  - 45番目のマス(ref_50)を `computer:left_click` でタップし、`get_page_text` で本文に `45ばんめの ますを おしたよ` が表示されることを確認
+  - → **合格**
+- 実行4: レスポンシブ確認(同URL、自分で計測)
+  - `resize_window` 375x812 → `.board-wrapper.getBoundingClientRect()` = 345x345(正方形)、`document.documentElement.scrollWidth`(375) > `window.innerWidth`(375) は false(横スクロールなし)
+  - `resize_window` 1024x768 → `.board-wrapper.getBoundingClientRect()` = 640x640(正方形)、`scrollWidth`(1009) > `innerWidth`(1024) は false(横スクロールなし)
+  - → **合格**
+- 実行5: `git status --short` → `M tasks/T003-board-ui.md` のみ(このverifierによる作業ログ追記分)。実装由来の差分・未追跡ファイルは残っていない → **合格**
+- 実行6: 裏返しアニメーションのコード確認(直接的手法)
+  - `app/src/components/Board.css` に `.disc-flipping { animation: disc-flip 300ms ease-in-out; }` と `@keyframes disc-flip { 0%/100% scaleX(1), 50% scaleX(0.05) }` を確認(横潰れ反転、約300ms)
+  - `app/src/components/Board.tsx` で `flippedPositions(previous, cells)` により前回描画からの色変化マスを検出して `flipping` state に格納し、該当石の `<g>` に `disc-flipping` クラスを付与する実装を確認(色変化時にアニメーションが適用される仕組みが実在)
+  - → **合格**(実動作の厳密確認は要件上不要のためコードレベルの確認に留めた)
+- 総合判定: 全5基準 合格
