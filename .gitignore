@@ -1,0 +1,26 @@
+# OS / エディタ
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# 環境変数・秘密情報
+.env
+.env.*
+!.env.example
+
+# 言語別(必要に応じて調整)
+node_modules/
+dist/
+build/
+__pycache__/
+*.pyc
+.venv/
+target/
+
+# Codex CLI (scripts/codex-*.ps1) の実行ログ出力先
+logs/
+
+# Claude Code ローカル設定(settings.json.example はコミット対象)
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
