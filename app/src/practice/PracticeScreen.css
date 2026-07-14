@@ -1,0 +1,81 @@
+.practice-button {
+  min-width: 9rem;
+  min-height: 3.5rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.65rem 1.6rem;
+  font: inherit;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 0.3rem 0 rgba(0, 0, 0, 0.2);
+}
+
+.practice-button:active {
+  transform: translateY(0.2rem);
+  box-shadow: 0 0.1rem 0 rgba(0, 0, 0, 0.2);
+}
+
+.practice-button-ok {
+  background: #e36b24;
+}
+
+.practice-button-next {
+  margin-top: 0.8rem;
+  background: #347d3e;
+}
+
+.practice-result {
+  width: min(92vw, 34rem);
+  padding: 1rem 1.2rem 1.4rem;
+  border-radius: 1.4rem;
+  background: #ffffff;
+  box-shadow: 0 0.25rem 0.8rem rgba(0, 0, 0, 0.15);
+}
+
+.practice-result-だいせいこう {
+  border: 0.3rem solid #f2b705;
+  background: #fff9d9;
+}
+
+.practice-hanamaru {
+  margin: -0.3rem 0;
+  color: #ef5b49;
+  font-size: 4.5rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.practice-misses {
+  margin: 0;
+}
+
+.practice-misses div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #d9e8da;
+}
+
+.practice-misses dt,
+.practice-misses dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+@media (max-height: 820px) {
+  #app-root {
+    gap: 0.55rem;
+  }
+
+  #app-root h1 {
+    font-size: 1.4rem;
+    margin-top: 0;
+  }
+
+  .message-bar {
+    min-height: 2.8rem;
+  }
+}
