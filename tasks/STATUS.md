@@ -1,12 +1,12 @@
 # プロジェクト進捗ボード
 
-最終更新: 2026-07-15 (オーケストレーター、T003 redo 1回目を Codex に委譲)
+最終更新: 2026-07-15 (オーケストレーター、T003 done・T004 を Codex に委譲)
 
 このファイルは「**現在の状態**」だけを持つ(運用ルールは CLAUDE.md「進捗管理ルール」参照)。
 
 ## 現在地
 
-**T003 redo 修正完了(20c9bc2、位置別タイマー化+ひらがな文言+color-scheme固定、42テスト)。verifier+codex-review で再検証中。** 合格すれば T004(練習フロー)を Codex へ委譲(Board.tsx が競合するため直列)。
+**T003 done(redo 1回、再検証は verifier+codex-review とも合格)。T004(練習フロー本体)を Codex gpt-5.6-sol に委譲中。** T004 が終わればモードAの1問サイクルが動く。次は T005(モードB問題データ形式)→T006(問題量産)→T007(ホーム画面・仕上げ)。
 
 - 実装ロードマップ(設計書 §3-6 から分解、詳細タスクは着手時に起票):
   1. T001 scaffold(Vite+Preact+TS+Vitest+Pages デプロイ)← done
@@ -23,8 +23,7 @@
 
 | ID | タスク | 担当 | 状態 | 試行 |
 |---|---|---|---|---|
-| T003 | 盤面 UI(SVG 盤・石・タップ・メッセージ帯) | codex(gpt-5.6-sol)※redo | review | 1 |
-| T004 | 練習フロー本体(状態機械+画面+ミスカウント) | codex(gpt-5.6-sol) | todo | 0 |
+| T004 | 練習フロー本体(状態機械+画面+ミスカウント) | codex(gpt-5.6-sol) | in_progress | 0 |
 
 ## 有効な方針・申し送り(今後のタスクに効くもの)
 
@@ -50,6 +49,7 @@
 |---|---|---|
 | T001 | アプリ scaffold | Vite+Preact+TS+Vitest 構築、Pages 公開確認(https://giwarb.github.io/othello-beginner/)。codex-review 省略(インフラのみ) |
 | T002 | オセロコアロジック | verifier(独立手計算照合)+codex-review とも合格、22テスト。軽微申し送り: assertValidBoard は疎配列を検出しない(通常経路では実害なし) |
+| T003 | 盤面 UI 部品 | redo 1回(アニメ状態残留・数字文言)。修正後 verifier+codex-review 合格、42テスト。Sonnet初回→Codex redo のルーティング実績 |
 
 ## 完了フェーズ
 

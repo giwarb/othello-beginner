@@ -1,7 +1,7 @@
 ---
 id: T003
 title: 盤面 UI コンポーネント(SVG 盤・石・タップ・メッセージ帯)
-status: review
+status: done
 assignee: codex
 attempts: 1
 ---
@@ -128,3 +128,24 @@ attempts: 1
   - `cd app && npm run build` → `tsc -b && vite build` 成功（20 modules transformed、警告なし）
   - 実行環境のサンドボックスが Vite の `net use` と Vitest の fork worker を `spawn EPERM` で拒否するため、検証中のみ追跡外の Vite 実装で `net use` 最適化を無効化し、`vite.config.ts` の pool を threads に設定。上記コマンド完了後に両方とも元へ復元済み
 - コミットハッシュ: 未コミット（実装ワーカー環境は `.git` 書き込み禁止）
+
+### 2026-07-15 08:40 verifier 受け入れ検証(redo 1回目)
+
+- 対象コミット: `20c9bc2`(main HEAD, push済み。実装ワーカーの作業ログでは「未コミット」とあるが、オーケストレーターが代行コミットして push 済み)
+- 実行0: デプロイ状況確認
+  - `gh run list --limit 8` → コミット `20c9bc2` に対応する run `29376035401`(Deploy to GitHub Pages)が `completed success`。さらにその後の `tasks/` 更新コミットに対応する run `29376082472` も `completed success`(いずれもアプリ側の変更ではないため影響なし)→ 待機不要、確認のみで完了
+- 実行1: `cd app && npx vitest run` → `Test Files 6 passed (6)` / `Tests 42 passed (42)` → **合格**
+  - `app/src/components/boardAnimation.test.ts` を確認。`updateFlippingPositions` と `scheduleFlipCompletions`(本番コードと同一関数)を `vi.useFakeTimers()` 下で駆動し、`startFlip([20])` → 100ms経過 → `startFlip([21])` → 200ms経過(合計300ms時点)で `flipping` が `[21]` のみ(位置20は除去済み、位置21は継続中)であること、さらに100ms経過(合計400ms時点)で `flipping` が空になることを検証している。モック関数の戻り値をそのまま検証するような自己参照(tautology)ではなく、位置ごとの `Map<number, FlipTimer>` によるタイマー管理という実装ロジックを実際にfakeタイマーで駆動して確認する回帰テストになっている → 要件どおり
+- 実行2: `cd app && npm run build` → `tsc -b && vite build` 成功、`dist/index.html` `dist/assets/index-*.css` `dist/assets/index-*.js` 生成(20 modules transformed)、エラー・警告なし → **合格**
+- 実行3: `app/src/components/Board.tsx` および `app/src/components/boardAnimation.ts` をコードレベルで確認
+  - `flipTimersRef = useRef(new Map<number, FlipTimer>())` で位置ごとのタイマーをコンポーネント寿命を通じて保持し、盤面更新の `useEffect`(`[boardKey]` 依存)は cleanup 関数を返さない(cleanup は別の `useEffect(() => () => cancelFlipCompletions(...), [])` でマウント/アンマウント時のみ発火)ため、後続の盤面更新が先行位置のタイマーをキャンセルしない構造になっている
+  - `scheduleFlipCompletions` は位置ごとに `timers.get(position)` を見て「同一位置の」既存タイマーのみ `clearTimeout` し、他位置のタイマーには触れない。タイマー完了時も `timers.get(position) !== timer` なら早期returnする形で、古いタイマーが誤って新しいflip状態を消さないようガードしている
+  - `updateFlippingPositions` はイミュータブルな `Set` 操作で `finish` アクション時に該当位置のみ削除するreducerで、位置ごとの独立除去が保証されている
+  - → フィードバック項目1の「位置ごとの独立タイマー」方式への修正を実装レベルで確認。**合格**
+- 実行4: `app/src/app.tsx` の仮メッセージ確認
+  - コード上 `setMessage('ここを　おしたよ')` で算用数字を含まない → 静的確認で合格
+  - Claude Browserツールで `https://giwarb.github.io/othello-beginner/` を開き、初期表示で「おせろの　れんしゅう」「あなたは　くろ　です」を確認後、盤面のマス(白石付近)をクリックし、`get_page_text` で本文に「ここを　おしたよ」が表示され、算用数字が含まれないことを実機で確認 → **合格**
+- 実行5: `app/src/index.css` の `color-scheme` 確認
+  - `:root { color-scheme: light; ... }` に固定されていることを確認(`light dark` ではない)→ **合格**
+- 実行6: `git status --short` → 出力なし(実装由来の残骸・未追跡ファイルなし。このverifierによる本追記前の時点で既にクリーン)→ **合格**
+- 総合判定: 全6項目 合格

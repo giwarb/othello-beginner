@@ -1,7 +1,7 @@
 ---
 id: T004
 title: 練習フロー本体(おく段階→ひっくりかえす段階→結果、ミスカウント3種)
-status: todo
+status: in_progress
 assignee: codex
 attempts: 0
 ---
