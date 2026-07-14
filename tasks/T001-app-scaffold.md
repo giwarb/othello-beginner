@@ -1,7 +1,7 @@
 ---
 id: T001
 title: アプリ scaffold(Vite + Preact + TS + Vitest + GitHub Pages デプロイ)
-status: in_progress
+status: done
 assignee: implementer
 attempts: 0
 ---
@@ -55,3 +55,33 @@ othello-beginner(幼児向けオセロ練習アプリ、設計書 `othello-begin
 (なし)
 
 ## 作業ログ(担当エージェントが追記)
+
+### 2026-07-15 07:34 implementer
+
+実施内容:
+- `app/` に `npm create vite@latest app -- --template preact-ts` で Vite + Preact + TS プロジェクトを新規作成。
+- デモ用の装飾(`app.css` / `src/assets/*` / `public/icons.svg`)を削除し、`src/app.tsx` をプレースホルダ(タイトル「おせろの　れんしゅう」を表示するのみ)に置き換え。`src/index.css` も最小化。
+- `index.html` の `lang` を `ja`、`title` を「おせろの　れんしゅう」に変更(viewport meta はテンプレート由来のものをそのまま使用)。
+- `vite.config.ts` に `base: '/othello-beginner/'` を追加。
+- `npm install -D vitest` でVitestを導入し、`src/sample.test.ts` にダミーテストを追加。`package.json` に `"test": "vitest run"` スクリプトを追加。
+- `.github/workflows/deploy.yml` を新規作成(main push → `app/` で `npm ci && npm run build` → `actions/configure-pages` + `actions/upload-pages-artifact` + `actions/deploy-pages`)。
+- `README.md` に「開発コマンド」セクションを追記(dev/build/test)。
+- `.gitignore`: ルートに既存の `node_modules/` `dist/` パターンで `app/node_modules` `app/dist` は除外済みと確認(追記不要。`git check-ignore -v app/node_modules app/dist` で確認、実際には vite 生成の `app/.gitignore` がマッチ)。
+- GitHub Pages のソース設定が未構成だったため、`gh api -X POST repos/giwarb/othello-beginner/pages -f build_type=workflow` で「GitHub Actions」ソースを有効化(実行結果: `"build_type":"workflow"` で成功)。
+
+実行コマンドと結果:
+- `cd app && npx vitest run` → `Test Files 1 passed (1)` / `Tests 1 passed (1)`
+- `cd app && npm ci` → 成功(147 packages installed)
+- `cd app && npm run build` → 成功(`tsc -b && vite build`、`dist/index.html` 等を生成)
+- `dist/index.html` を確認し、`base: '/othello-beginner/'` によりアセットパスが `/othello-beginner/assets/...` になっていることを確認。
+- `git status --short` (作業ツリー、ステージ前) → `app/` `.github/` が未追跡、`README.md` が変更。
+- `git add app .github/workflows/deploy.yml README.md`(明示パス指定、`git add -A`/`.` は不使用)
+- `git commit` → コミットハッシュ `7619d4ced745f91fb055fcd596ae81bcfe01aec5`
+- `git push origin main` → `06900cf..7619d4c main -> main`
+- `gh run watch 29373323013 --exit-status` → `build` `deploy` ともに ✓ (成功。Node.js 20 非推奨の警告のみ、エラーなし)
+- ブラウザで `https://giwarb.github.io/othello-beginner/` を確認 → ページタイトルおよび本文に「おせろの　れんしゅう」が表示されることを確認(`get_page_text` で取得)。
+- `git status --short` (最終確認) → 出力なし(クリーン)。
+
+コミットハッシュ: `7619d4ced745f91fb055fcd596ae81bcfe01aec5`
+
+仕様どおりにできなかった点: なし。

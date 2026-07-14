@@ -1,7 +1,7 @@
 ---
 id: T002
 title: オセロコアロジック(合法手・裏返し列挙・着手適用)+ ユニットテスト
-status: todo
+status: in_progress
 assignee: codex
 attempts: 0
 ---

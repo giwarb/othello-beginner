@@ -1,16 +1,16 @@
 # プロジェクト進捗ボード
 
-最終更新: 2026-07-15 (オーケストレーター、設計書作成・T001委譲)
+最終更新: 2026-07-15 (オーケストレーター、T001 done・T002 を Codex に委譲)
 
 このファイルは「**現在の状態**」だけを持つ(運用ルールは CLAUDE.md「進捗管理ルール」参照)。
 
 ## 現在地
 
-**設計書(`othello-beginner-design.md`)確定、実装フェーズ開始。** T001(scaffold)を implementer に委譲中。T001 完了後に T002(コアロジック)を Codex gpt-5.6-sol へ委譲する。
+**T001 done(Pages 公開確認済み: https://giwarb.github.io/othello-beginner/ )。T002(コアロジック)を Codex gpt-5.6-sol に委譲中。**
 
 - 実装ロードマップ(設計書 §3-6 から分解、詳細タスクは着手時に起票):
-  1. T001 scaffold(Vite+Preact+TS+Vitest+Pages デプロイ)← 実行中
-  2. T002 コアロジック(合法手・裏返し列挙)← 起票済み todo
+  1. T001 scaffold(Vite+Preact+TS+Vitest+Pages デプロイ)← done
+  2. T002 コアロジック(合法手・裏返し列挙)← 実行中(codex)
   3. T003 盤面 UI(SVG、タップ、メッセージ帯)
   4. T004 練習フロー(おく段階→ひっくりかえす段階→結果、ミスカウント3種)
   5. T005 モードB 問題データ形式+判定(すみ/Xよけ/すくなく)
@@ -21,8 +21,7 @@
 
 | ID | タスク | 担当 | 状態 | 試行 |
 |---|---|---|---|---|
-| T001 | アプリ scaffold(Vite+Preact+TS+Vitest+Pages) | implementer | in_progress | 0 |
-| T002 | オセロコアロジック+テスト | codex(gpt-5.6-sol) | todo | 0 |
+| T002 | オセロコアロジック+テスト | codex(gpt-5.6-sol) | in_progress | 0 |
 
 ## 有効な方針・申し送り(今後のタスクに効くもの)
 
@@ -44,7 +43,7 @@
 
 | ID | タスク | 結果1行サマリ |
 |---|---|---|
-| (なし) | | |
+| T001 | アプリ scaffold | Vite+Preact+TS+Vitest 構築、Pages 公開確認(https://giwarb.github.io/othello-beginner/)。codex-review 省略(インフラのみ) |
 
 ## 完了フェーズ
 
