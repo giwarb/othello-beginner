@@ -1,7 +1,7 @@
 ---
 id: T010a
 title: 記録加算のタイミング堅牢化(effect 依存の取りこぼし解消)
-status: review
+status: done
 assignee: codex
 attempts: 2
 ---
