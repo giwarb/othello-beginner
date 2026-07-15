@@ -1,7 +1,7 @@
 ---
 id: T004a
 title: 結果ラベルのひらがな化と同一メッセージ連続時の再通知
-status: in_progress
+status: review
 assignee: implementer
 attempts: 0
 ---
@@ -53,3 +53,22 @@ T004 の codex-review 中指摘2件(`tasks/review/T004-practice-flow-codex-revie
 (なし)
 
 ## 作業ログ(担当エージェントが追記)
+
+- 2026-07-15 implementer
+  - 実施内容:
+    - `app/src/practice/PracticeScreen.tsx`: 結果内訳ラベルのカタカナ「ミス」を排除し、「おいた　ばしょの　まちがい」「ひっくりかえしの　まちがい」「はやおしの　かず」に変更。`MessageBar` へ `messageSeq` を追加で渡すよう変更。
+    - `app/src/practice/practiceMachine.ts`: `CommonState` に `messageSeq: number` を追加し、`message` を設定する全遷移(placing/flipping のミス・成功メッセージ、pressOk の早押しミス・結果メッセージ)で `messageSeq: state.messageSeq + 1` をセット。`puzzleState` の初期値は `messageSeq: 0`。
+    - `app/src/components/messageBarLogic.ts`: `shouldPulse(previousSeq, nextSeq, nextMessage)` に変更。`nextMessage !== '' && nextSeq !== previousSeq` でポップ判定。
+    - `app/src/components/MessageBar.tsx`: props に `messageSeq` を追加し、`previousSeqRef` で連番の変化を検知して `pulseKey` を更新(同一文言でも再ポップ)。
+    - `app/src/components/messageBarLogic.test.ts`: 新シグネチャに合わせて全面書き換え。連番違い・同一文言での再ポップを検証するテストを追加。
+    - `app/src/practice/practiceMachine.test.ts`: 同一非合法タップ2連続で `messageSeq` がインクリメントされ `message` は同一文言のままであることを検証するテストを追加。
+  - 実行コマンドと結果:
+    - `cd app && npx vitest run` → 7 test files / 61 tests すべて成功。
+    - `cd app && npm run build` → 成功(`tsc -b && vite build`、`dist/` 生成)。
+    - `LC_ALL=en_US.UTF-8 grep -rnP '[\x{30A1}-\x{30F6}]' --include='*.tsx' --include='*.ts' app/src` → ヒットはすべてコード内コメント(JSDoc)のみで、表示文言・OK ボタン以外のカタカナは検出されず。
+    - ローカル dev サーバー(`.claude/launch.json` を一時作成して `npm run dev` 実行、確認後に削除)と Claude Browser で JS 経由のクリックにより、同一非合法マスに2連続タップして `<p class="message-bar-text">` DOM ノードが key 変更により再マウントされること(expando プロパティが引き継がれない)を確認。結果画面の全ひらがな表示も確認。
+    - コミット後 `git push origin main`、`gh run watch <run-id> --exit-status` で GitHub Actions「Deploy to GitHub Pages」成功を確認(run 29377944735、build/deploy 両ジョブ成功)。
+    - 公開URL https://giwarb.github.io/othello-beginner/ にて Claude Browser + JS dispatch で実地確認: (a) 結果画面ラベルが「おいた　ばしょの　まちがい」「ひっくりかえしの　まちがい」「はやおしの　かず」で全ひらがな、(b) 同一非合法マス(0番目)を2連続タップし、2回とも `message-bar-text` の DOM ノードが再生成(ポップ再発火)されることを確認。
+    - `git status --short` → タスク完了時点でクリーン(未追跡・差分なし)。
+  - コミットハッシュ: `a2de15da221692dd2015044a1ab94bee7669f143`
+  - 仕様どおりにできなかった点: なし
