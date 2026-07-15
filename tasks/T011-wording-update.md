@@ -1,7 +1,7 @@
 ---
 id: T011
 title: 文言修正(えっくす　うち / あいての　うてる　ばしょ)
-status: in_progress
+status: done
 assignee: implementer
 attempts: 0
 ---
@@ -48,3 +48,14 @@ attempts: 0
 (なし)
 
 ## 作業ログ(担当エージェントが追記)
+
+- 2026-07-15 implementer: 文言変更を実施。
+  - 変更ファイル: `app/src/practice/practiceMachine.ts`(avoid-x お題プロンプト)、`app/src/home/HomeScreen.tsx`(avoid-x / min-mobility ボタンラベル)、`app/src/practice/practiceMachine.test.ts`(avoid-x プロンプト期待値)。
+  - 内容: 「ばつの　ばしょは　やめよう」→「えっくす　うちは　やめよう」(お題・ボタン両方)、「うてる　ばしょを　へらそう」→「あいての　うてる　ばしょを　へらそう」(ホームボタンのみ)。min-mobility のお題プロンプトは変更なし。
+  - 実行コマンドと結果:
+    - `cd app && npx vitest run` → 13 test files / 129 tests すべてパス。
+    - `cd app && npm run build` → 成功(`dist/` 生成)。
+    - `grep -rn "ばつの　ばしょは　やめよう\|うてる　ばしょを　へらそう" app/src` → マッチなし(旧文言は残存しない)。
+  - コミット: `cd8e7dba91dd28f342526edc353baa674771fe8d`(`app: 文言修正(えっくす うち / あいての うてる ばしょ) (T011)`)。`git push` 実行し、GitHub Actions Run 29388671008(Deploy to GitHub Pages)が成功したことを `gh run watch` で確認。
+  - 公開URL確認: https://giwarb.github.io/othello-beginner/ にてブラウザ操作。ホーム画面のボタンラベルが「えっくす　うちは　やめよう」「あいての　うてる　ばしょを　へらそう」であることを確認。avoid-x ボタンをクリックし、問題中のお題プロンプトが「えっくす　うちは　やめよう」と表示されることを確認。
+  - タスク完了時点で `git status --short` に差分・未追跡ファイルなし(クリーン)。
