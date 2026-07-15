@@ -1,7 +1,7 @@
 ---
 id: T007
 title: ホーム画面・モード/カテゴリ選択・ヒント設定(初期スコープ仕上げ)
-status: review
+status: done
 assignee: codex
 attempts: 1
 ---
@@ -138,3 +138,19 @@ attempts: 1
   - `npx tsc -b --pretty false` → 成功。
   - `git diff --check` → 問題なし。
 - コミットハッシュ: 未作成(`.git` 書き込み禁止のため、オーケストレーターが代行予定)。
+
+### 2026-07-15 verifier(redo 1回目検証)
+
+- 対象コミット: `5c27ce9`(main push済み、`origin/main` と一致確認済み)。redoフィードバック3点の修正のみを検証対象とした(初回受け入れ基準の公開URL動作は前回verifier合格済みのためスコープ外)。
+- 実施内容と結果:
+  1. `cd app && npx vitest run` → 10ファイル・93テスト全件パス(素の `npx vitest run` で問題なく実行でき、実装者が報告した `spawn EPERM` は本検証環境では再現せず)。
+  2. `app/src/practice/practiceMachine.ts` / `PracticeScreen.tsx` を読み込み確認:
+     - `poolForSelection(puzzles, selection, random, previousPuzzleId)` が新設され、`pool[0]?.id === previousPuzzleId` の場合に `differentIndex = pool.findIndex(id !== previousPuzzleId)` を探して `pool[0]` と交換する構造になっている。
+     - `PracticeScreen.tsx` の `handleNext` は一巡境界(`current.puzzleIndex + 1 >= pool.length`)で `pool[current.puzzleIndex].id`(直前の問題ID)を `poolForSelection` に渡している。
+     - プールサイズ1の場合: `differentIndex` は `findIndex` が見つからず `-1` になり、`differentIndex > 0` が偽なので交換をスキップしてそのまま返す。無限ループにはならず、交換不能時は同一問題の連続を許容する安全側の実装(要件どおり)。
+  3. `practiceMachine.test.ts` の「does not repeat the previous puzzle across a reshuffle boundary」テストを手計算で追跡: `MIXED_PUZZLES` の corner カテゴリ3件 `[corner-a, corner-b, corner-c]` に対し `random=()=>0` でシャッフルすると `[corner-b, corner-c, corner-a]` となり `previousPuzzleId='corner-a'`。次に `random=()=>0.9` でシャッフルすると `[corner-a, corner-b, corner-c]`(先頭がそのまま `corner-a` = 衝突発生)。`poolForSelection` の交換ロジックにより `[corner-b, corner-a, corner-c]` に補正され、テストの期待値と一致。衝突が実際に起きる乱数列を選んで検証しており、形骸化していないことを確認した。
+  4. `app/src/home/hintSettings.ts` の `loadHintEnabled`/`saveHintEnabled` は `resolveStorage(...)` の呼び出しごと try/catch で保護されており、読み込み例外時は `false`、保存例外時は例外を握りつぶして何もしない実装。`hintSettings.test.ts` に `getItem` が `DOMException('blocked','SecurityError')` を投げる疑似ストレージで既定オフになることを確認するテスト、および `setItem` が例外を投げても `saveHintEnabled` が `toThrow` しないことを確認するテストが存在する。
+  5. シャッフルテスト「shuffles within the selected pool using the given random source」は `git show 5c27ce9 -- app/src/practice/practiceMachine.test.ts` で差分を確認し、修正前は `new Set(...)).toEqual(new Set([...]))` という集合一致のみの検証だったのに対し、修正後は固定乱数列 `[0.9, 0.1]` に対する `pool.map(id)` の期待順序 `['corner-b','corner-a','corner-c']` を直接検証する形に変更されていることを確認(手計算でも一致)。
+  6. `cd app && npm run build` → 成功(`tsc -b && vite build`、`dist/` 生成確認)。`gh run list --limit 8` でコミット `5c27ce9`(コミットメッセージ「app: T007 redo修正...」)に対応する「Deploy to GitHub Pages」run(29382114487)が `success` であることを確認。Claude Browser で公開URL https://giwarb.github.io/othello-beginner/ を開き、ホーム画面(4種の練習ボタン+「ひんと　あり」トグル)が正しく表示されエラーがないこと、コンソールエラーがないことを確認(軽い確認のみ、redo対象外の詳細動作確認は前回verifierの合格結果を踏襲)。
+  7. `git status --short` / `git ls-files --others --exclude-standard` → いずれも空(このタスク由来の残骸なし)。検証中に一時的に `tasks/STATUS.md` 等が変更表示される瞬間があったが、これは並行するオーケストレーション処理による一過性のもので、再確認時には解消しておりT007実装由来ではないと判断した。
+- 総合判定: 合格。redoフィードバック3点(一巡境界の非連続保証・テスト、localStorage例外保護・テスト、シャッフルテストの順序検証化)はいずれも要件どおり修正されていることを確認した。
