@@ -102,6 +102,14 @@ export function createGameState(board: Board = initialBoard()): GameState {
   return beginPlayerTurn(board, { ...EMPTY_MISSES }, 0)
 }
 
+/**
+ * `previous` から `next` への遷移で終局状態に入ったかどうか。
+ * 完走・勝ちの加算をこの遷移そのものと同期させるために使う(描画やアンマウントのタイミングに依存しない)。
+ */
+export function enteredGameOver(previous: GameState, next: GameState): next is GameOverState {
+  return previous.phase !== 'gameOver' && next.phase === 'gameOver'
+}
+
 export function tapGameCell(state: GameState, position: number): GameState {
   if (state.phase !== 'player') return state
   const practice = tapCell(state.practice, position)

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'preact/hooks'
+import { useRef, useState } from 'preact/hooks'
 import { Board } from '../components/Board'
 import { MessageBar } from '../components/MessageBar'
 import { TurnBadge } from '../components/TurnBadge'
@@ -6,6 +6,7 @@ import { GENERATED_PUZZLES } from '../puzzles/generated'
 import { addGreatSuccess } from '../records/records'
 import {
   createPracticeState,
+  enteredGreatSuccess,
   hintPositions,
   nextPuzzle,
   poolForSelection,
@@ -32,14 +33,16 @@ export function PracticeScreen({ selection, hintEnabled, onHome }: PracticeScree
     puzzlesRef.current = poolForSelection(GENERATED_PUZZLES, selection)
   }
   const [state, setState] = useState<PracticeState>(() => createPracticeState(puzzlesRef.current!))
-  const recordedResult = useRef<PracticeState | undefined>(undefined)
 
-  useEffect(() => {
-    if (state.phase === 'result' && state.result === 'だいせいこう' && recordedResult.current !== state) {
-      recordedResult.current = state
-      addGreatSuccess()
-    }
-  }, [state])
+  const handlePressOk = () => {
+    setState((current) => {
+      const next = pressOk(current)
+      if (enteredGreatSuccess(current, next)) {
+        addGreatSuccess()
+      }
+      return next
+    })
+  }
 
   const handleNext = () => {
     setState((current) => {
@@ -82,7 +85,7 @@ export function PracticeScreen({ selection, hintEnabled, onHome }: PracticeScree
       {state.hint && <p aria-live='polite'>{state.hint}</p>}
 
       {state.phase === 'flipping' && (
-        <button class='practice-button practice-button-ok' type='button' onClick={() => setState(pressOk)}>
+        <button class='practice-button practice-button-ok' type='button' onClick={handlePressOk}>
           OK
         </button>
       )}

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { flippedDiscs, parseBoard, serializeBoard } from '../core/othello'
 import {
   createPracticeState,
+  enteredGreatSuccess,
   hintPositions,
   nextPuzzle,
   poolForSelection,
@@ -214,6 +215,37 @@ describe('result and next puzzle', () => {
     expect(secondFlipping.phase).toBe('flipping')
     const secondResult = pressOk(flipAll(secondFlipping as FlippingState))
     expect(nextPuzzle(secondResult, PUZZLES).puzzleIndex).toBe(0)
+  })
+})
+
+describe('enteredGreatSuccess', () => {
+  it('is true only when pressOk transitions flipping into a だいせいこう result', () => {
+    const flipping = flipAll(startFlipping())
+    const result = pressOk(flipping)
+    expect(result.phase).toBe('result')
+    expect(enteredGreatSuccess(flipping, result)).toBe(true)
+  })
+
+  it('is false for a せいこう result (some misses were made)', () => {
+    const withMiss = tapCell(createPracticeState(PUZZLES), 0)
+    const flipping = tapCell(withMiss, 19) as FlippingState
+    const flipped = flipAll(flipping)
+    const result = pressOk(flipped)
+    expect(result.phase).toBe('result')
+    if (result.phase === 'result') expect(result.result).toBe('せいこう')
+    expect(enteredGreatSuccess(flipped, result)).toBe(false)
+  })
+
+  it('is false when pressOk is a no-op (early OK, or already in result)', () => {
+    const flipping = startFlipping()
+    const early = pressOk(flipping)
+    expect(early.phase).toBe('flipping')
+    expect(enteredGreatSuccess(flipping, early)).toBe(false)
+
+    const result = pressOk(flipAll(startFlipping()))
+    const again = pressOk(result)
+    expect(again).toBe(result)
+    expect(enteredGreatSuccess(result, again)).toBe(false)
   })
 })
 

@@ -4,7 +4,7 @@ import { MessageBar } from '../components/MessageBar'
 import { TurnBadge } from '../components/TurnBadge'
 import { addCompleted, addWin } from '../records/records'
 import {
-  createGameState, finishCpuPass, playCpuTurn, pressGameOk, tapGameCell,
+  createGameState, enteredGameOver, finishCpuPass, playCpuTurn, pressGameOk, tapGameCell,
   type GameResult, type GameState,
 } from './gameMachine'
 import './GameScreen.css'
@@ -14,6 +14,16 @@ export interface GameScreenProps {
   onComplete?: (result: GameResult) => void
 }
 
+/** 終局への遷移そのものに同期して、完走・勝ちを1回だけ加算する。 */
+function recordGameResult(previous: GameState, next: GameState): void {
+  if (enteredGameOver(previous, next)) {
+    addCompleted()
+    if (next.result.outcome === 'win') {
+      addWin()
+    }
+  }
+}
+
 export function GameScreen({ onHome, onComplete }: GameScreenProps) {
   const [state, setState] = useState<GameState>(createGameState)
   const notifiedResult = useRef<GameResult | undefined>(undefined)
@@ -21,7 +31,11 @@ export function GameScreen({ onHome, onComplete }: GameScreenProps) {
   useEffect(() => {
     if (state.phase !== 'cpu' && state.phase !== 'cpuPass') return
     const timer = window.setTimeout(() => {
-      setState((current) => current.phase === 'cpu' ? playCpuTurn(current) : finishCpuPass(current))
+      setState((current) => {
+        const next = current.phase === 'cpu' ? playCpuTurn(current) : finishCpuPass(current)
+        recordGameResult(current, next)
+        return next
+      })
     }, state.phase === 'cpu' ? 800 : 1000)
     return () => window.clearTimeout(timer)
   }, [state.phase, state.messageSeq])
@@ -29,10 +43,6 @@ export function GameScreen({ onHome, onComplete }: GameScreenProps) {
   useEffect(() => {
     if (state.phase === 'gameOver' && notifiedResult.current !== state.result) {
       notifiedResult.current = state.result
-      addCompleted()
-      if (state.result.outcome === 'win') {
-        addWin()
-      }
       onComplete?.(state.result)
     }
   }, [state, onComplete])
@@ -40,6 +50,13 @@ export function GameScreen({ onHome, onComplete }: GameScreenProps) {
   const restart = () => {
     notifiedResult.current = undefined
     setState(createGameState())
+  }
+  const handlePressGameOk = () => {
+    setState((current) => {
+      const next = pressGameOk(current)
+      recordGameResult(current, next)
+      return next
+    })
   }
   const isPlayer = state.phase === 'player' || state.phase === 'playerPass'
   const canPressOk = state.phase === 'playerPass' || (state.phase === 'player' && state.practice.phase === 'flipping')
@@ -60,7 +77,7 @@ export function GameScreen({ onHome, onComplete }: GameScreenProps) {
       <MessageBar message={state.message} messageSeq={state.messageSeq} />
 
       {canPressOk && (
-        <button class='game-button game-button-ok' type='button' onClick={() => setState(pressGameOk)}>OK</button>
+        <button class='game-button game-button-ok' type='button' onClick={handlePressGameOk}>OK</button>
       )}
 
       {state.phase === 'gameOver' && (

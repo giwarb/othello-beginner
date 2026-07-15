@@ -3,6 +3,7 @@ import { legalMoves, parseBoard, serializeBoard } from '../core/othello'
 import { chooseCpuMove } from './cpu'
 import {
   createGameState,
+  enteredGameOver,
   finishCpuPass,
   playCpuTurn,
   pressGameOk,
@@ -116,6 +117,49 @@ describe('miss accumulation', () => {
     expect(state.phase).toBe('cpu')
     state = playCpuTurn(state, () => 0)
     expect(state.misses).toEqual({ placing: 1, flipping: 1, earlyOk: 1 })
+  })
+})
+
+describe('enteredGameOver', () => {
+  it('fires exactly once, at the transition into gameOver, across a full game', () => {
+    let state: GameState = createGameState()
+    let transitionCount = 0
+    for (let turn = 0; turn < 200 && state.phase !== 'gameOver'; turn += 1) {
+      const previous = state
+      if (state.phase === 'player') {
+        if (state.practice.phase === 'placing') {
+          state = tapGameCell(state, state.practice.legalMoves[0])
+        }
+        if (state.phase === 'player' && state.practice.phase === 'flipping') {
+          for (const position of state.practice.discsToFlip) state = tapGameCell(state, position)
+          state = pressGameOk(state)
+        }
+      } else if (state.phase === 'playerPass') {
+        state = pressGameOk(state)
+      } else if (state.phase === 'cpu') {
+        state = playCpuTurn(state, () => 0)
+      } else if (state.phase === 'cpuPass') {
+        state = finishCpuPass(state)
+      }
+      if (enteredGameOver(previous, state)) transitionCount += 1
+    }
+    expect(state.phase).toBe('gameOver')
+    expect(transitionCount).toBe(1)
+  })
+
+  it('is false for a normal player-to-CPU handoff', () => {
+    const previous = createGameState()
+    const next = completePlayerMove(previous, 19)
+    expect(next.phase).not.toBe('gameOver')
+    expect(enteredGameOver(previous, next)).toBe(false)
+  })
+
+  it('is false once already in gameOver, even if a state function is called again (no double counting)', () => {
+    const gameOver = createGameState(parseBoard('b'.repeat(40) + 'w'.repeat(24)))
+    expect(gameOver.phase).toBe('gameOver')
+    const again = pressGameOk(gameOver)
+    expect(again).toBe(gameOver)
+    expect(enteredGameOver(gameOver, again)).toBe(false)
   })
 })
 

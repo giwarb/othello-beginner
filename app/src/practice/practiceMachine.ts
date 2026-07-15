@@ -186,6 +186,14 @@ export function pressOk(state: PracticeState): PracticeState {
   }
 }
 
+/**
+ * `previous` から `next` への遷移で「だいせいこう」の結果状態に入ったかどうか。
+ * すたんぷの加算をこの遷移そのものと同期させるために使う(描画やアンマウントのタイミングに依存しない)。
+ */
+export function enteredGreatSuccess(previous: PracticeState, next: PracticeState): boolean {
+  return previous !== next && next.phase === 'result' && next.result === 'だいせいこう'
+}
+
 export function nextPuzzle(
   state: PracticeState,
   puzzles: ReadonlyArray<PracticePuzzle>,
