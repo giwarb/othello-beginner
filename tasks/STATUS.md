@@ -1,12 +1,12 @@
 # プロジェクト進捗ボード
 
-最終更新: 2026-07-15 (オーケストレーター、T004 done・T004a を implementer に委譲)
+最終更新: 2026-07-15 (オーケストレーター、T004a done・T005 を Codex に委譲)
 
 このファイルは「**現在の状態**」だけを持つ(運用ルールは CLAUDE.md「進捗管理ルール」参照)。
 
 ## 現在地
 
-**T004 done — モードAの1問サイクルが公開URLで動作(verifier実地再現+codex-review合格)。** codex-review 中指摘2件を T004a(ひらがなラベル+同一メッセージ再通知)として implementer に委譲中。次: T005(モードB問題データ形式+判定)→T006(問題量産 puzzlegen)→T007(ホーム画面・仕上げ)。T004a と T005 は PracticeScreen/practiceMachine が競合するため直列。
+**T004a done(codex-review指摘ゼロ)。T005(モードB: 問題データ形式・validate関数・strategy フロー)を Codex gpt-5.6-sol に委譲中。** 次: T006(問題量産 puzzlegen、validate を共用)→T007(ホーム画面・モード選択・ヒント設定・仕上げ)。
 
 - 実装ロードマップ(設計書 §3-6 から分解、詳細タスクは着手時に起票):
   1. T001 scaffold(Vite+Preact+TS+Vitest+Pages デプロイ)← done
@@ -23,7 +23,7 @@
 
 | ID | タスク | 担当 | 状態 | 試行 |
 |---|---|---|---|---|
-| T004a | 結果ラベルひらがな化+同一メッセージ再通知 | implementer | review | 0 |
+| T005 | モードB(お題・validate・strategy フロー) | codex(gpt-5.6-sol) | in_progress | 0 |
 
 ## 有効な方針・申し送り(今後のタスクに効くもの)
 
@@ -51,6 +51,7 @@
 | T002 | オセロコアロジック | verifier(独立手計算照合)+codex-review とも合格、22テスト。軽微申し送り: assertValidBoard は疎配列を検出しない(通常経路では実害なし) |
 | T003 | 盤面 UI 部品 | redo 1回(アニメ状態残留・数字文言)。修正後 verifier+codex-review 合格、42テスト。Sonnet初回→Codex redo のルーティング実績 |
 | T004 | 練習フロー本体 | verifier が公開URLで1問サイクル全シナリオ実地再現(だいせいこう含む)、codex-review コードブロッカーなし。59テスト。中2件→T004a |
+| T004a | ひらがなラベル+再ポップ | codex-review 指摘ゼロ合格(verifier は差分小・実行済みのため省略)。61テスト |
 
 ## 完了フェーズ
 

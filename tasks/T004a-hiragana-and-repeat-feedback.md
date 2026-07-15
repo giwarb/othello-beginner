@@ -1,7 +1,7 @@
 ---
 id: T004a
 title: 結果ラベルのひらがな化と同一メッセージ連続時の再通知
-status: review
+status: done
 assignee: implementer
 attempts: 0
 ---

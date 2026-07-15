@@ -1,7 +1,7 @@
 ---
 id: T005
 title: モードB「いいてを　みつける」(問題データ形式・カテゴリ判定・練習フロー拡張)
-status: todo
+status: in_progress
 assignee: codex
 attempts: 0
 ---
