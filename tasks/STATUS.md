@@ -6,7 +6,7 @@
 
 ## 現在地
 
-**T004a done(codex-review指摘ゼロ)。T005(モードB: 問題データ形式・validate関数・strategy フロー)を Codex gpt-5.6-sol に委譲中。** 次: T006(問題量産 puzzlegen、validate を共用)→T007(ホーム画面・モード選択・ヒント設定・仕上げ)。
+**T005 実装完了(1673aad、Puzzle型+validate+サンプル9問+strategyフロー、74テスト)。verifier(公開URLでのモードB1問通し+サンプル問題の手計算検証)+codex-review を並列検証中。** 次: T006(問題量産 puzzlegen、validate を共用)→T007(ホーム画面・モード選択・ヒント設定・仕上げ)。
 
 - 実装ロードマップ(設計書 §3-6 から分解、詳細タスクは着手時に起票):
   1. T001 scaffold(Vite+Preact+TS+Vitest+Pages デプロイ)← done
@@ -23,7 +23,7 @@
 
 | ID | タスク | 担当 | 状態 | 試行 |
 |---|---|---|---|---|
-| T005 | モードB(お題・validate・strategy フロー) | codex(gpt-5.6-sol) | in_progress | 0 |
+| T005 | モードB(お題・validate・strategy フロー) | codex(gpt-5.6-sol) | review | 0 |
 
 ## 有効な方針・申し送り(今後のタスクに効くもの)
 

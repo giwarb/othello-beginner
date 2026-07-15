@@ -1,7 +1,7 @@
 ---
 id: T005
 title: モードB「いいてを　みつける」(問題データ形式・カテゴリ判定・練習フロー拡張)
-status: in_progress
+status: review
 assignee: codex
 attempts: 0
 ---
@@ -75,3 +75,12 @@ attempts: 0
 (なし)
 
 ## 作業ログ(担当エージェントが追記)
+
+- 2026-07-15 09:17 JST (Codex)
+  - 実施内容: Puzzle 判別共用体、3カテゴリの共通・カテゴリ別検証、各カテゴリ3問のサンプル、strategy の正解／合法不正解／非合法分岐、お題・ヒント表示、ルール問題から strategy 問題へ続く暫定配線を実装。
+  - `cd app && npx vitest run`: Windows サンドボックスが既定 fork と Vite の `net use` 起動を `spawn EPERM` で拒否。リポジトリ外の一時 preload で `net use` を無効化し、単一 `vmThreads` worker を指定した同コマンドで再実行し、8ファイル・74テスト全件成功。一時ファイルは作業終了時に削除。
+  - `cd app && npm run build`: 同じくリポジトリ外の一時 preload でサンドボックス制約を回避して成功 (`tsc -b && vite build`, 24 modules transformed)。
+  - `npx tsc -b --pretty false`: 成功。
+  - 表示文言確認: 追加したお題・メッセージ・ヒントはいずれもひらがな表記で、カタカナ・漢字・算用数字なし。「C 打ち」に関する表示・判定なし。`git diff --check` 成功。
+  - 公開URL操作確認: 未実施。この環境ではコミット・push・GitHub Actions デプロイを実行できないため、オーケストレーターによるコミット後に確認が必要。
+  - コミットハッシュ: 未実施 (`.git` 書き込み禁止のため)。
