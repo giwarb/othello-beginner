@@ -1,7 +1,7 @@
 ---
 id: T006
 title: 問題量産(puzzlegen 生成スクリプト+機械検証フィルタ+アプリ組み込み)
-status: review
+status: done
 assignee: codex
 attempts: 0
 ---
@@ -83,3 +83,13 @@ attempts: 0
   - `cd app && npx tsc --ignoreConfig --noEmit --target es2023 --module esnext --moduleResolution bundler --allowImportingTsExtensions --types node ../puzzlegen/generate.ts`: 成功。
   - `git diff --check`: 成功。
   - コミットハッシュ: なし（Codex環境は `.git` 書き込み不可。オーケストレーターが代行）。
+
+- 2026-07-15 10:20 +09:00 Verifier(Claude)
+  - 対象コミット: b723398(push済み、origin/main一致確認)。検証環境ではCodexが報告した `spawn EPERM` は再現せず、通常コマンドがそのまま通った。
+  - 1. `cd app && npm run puzzlegen`: 成功。`seed=20260715 games=43`、`rule difficulty 1/2/3: adopted=10/10/10`、`corner/avoid-x/min-mobility: adopted=30/30/30`。再生成後の `app/src/puzzles/generated.ts` は実行前とSHA-256完全一致(`368bee5b...`)、`git diff`も差分なし。再現性OK。
+  - 2. `cd app && npx vitest run`: 9ファイル・80テスト全件成功(EPERM無し)。`generatedPuzzles.test.ts` を読み、件数assert(rule各難度≧10、strategy各カテゴリ≧30)を確認。同ファイルは `GENERATED_PUZZLES`(生成済みデータ)をimportして検証しており、盤面妥当性・rule難度は独自の `flipDirectionCount` 実装+`legalMoves`で再計算、strategyは共用の `validateStrategyPuzzle` を通す構成。生成器のヒューリスティック実装を再実行するのではなく、生成物(データ)経由の検証になっていることを確認。
+  - 3. 抜き取り独立検証: Pythonで盤面表現・合法手判定・corner/avoid-x/min-mobilityの判定・rule難度定義をアプリのTSコードを一切参照せず独自実装し、`random.seed(42)`でcorner×2・avoid-x×2・min-mobility×2・rule difficulty1×2の計8問を無作為抽出して手計算検証。対象ID: generated-corner-21, generated-corner-04, generated-avoid-x-01, generated-avoid-x-24, generated-min-mobility-09, generated-min-mobility-08, generated-rule-1-04, generated-rule-1-03。全8問で独自実装のカテゴリ基準・難度定義を通過(例: rule-1-04は合法手3手・全て裏返し方向1のみでdifficulty1定義を満たす、corner-21はコーナー以外の合法手を除外し正解=[63]、min-mobility-08は次善手との差2以上で正解=[54]など)。さらに全120問に対しても同じPython独立実装で追加チェックし、失敗0件・盤面+手番の重複0件を確認(必須要件を超える追加確認)。
+  - 4. `cd app && npm run build`: `tsc -b && vite build` が成功(24モジュール変換、`dist/`生成)。
+  - 5. GitHub Actions: `gh run list` でb723398および後続のタスクファイル更新コミットf5dcd8dの双方の「Deploy to GitHub Pages」がcompleted/successを確認。公開URL https://giwarb.github.io/othello-beginner/ をブラウザで確認。(a) リロード3回で盤面がそれぞれ異なり(石数・配置が毎回変化、手番もw/bが変わる)、固定の初期4石局面ではなく生成プールからのシャッフル出題であることを確認。(b) 1問(rule difficulty1、盤面 `...w(27)b(28)b(35)b(36)b(44)...`、白番)を実際にUI操作(着手セル選択→OK→裏返し対象セルクリック→OK)で最後まで解答し、「せいこう!」表示・「おいた場所の間違い0回/ひっくりかえしの間違い0回」・「つぎへ」クリックで次問へ正常遷移することを確認。
+  - 6. `git status --short`: 検証開始時点で空(実装由来の残骸なし)。tasks配下のこの作業ログ追記のみ許可されているため追記後に差分が生じるが、それは想定通り。
+  - 総合判定: 合格。

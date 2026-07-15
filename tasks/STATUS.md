@@ -1,12 +1,12 @@
 # プロジェクト進捗ボード
 
-最終更新: 2026-07-15 (オーケストレーター、T005 done・T006 を Codex に委譲)
+最終更新: 2026-07-15 (オーケストレーター、T006 done・T007 を implementer に委譲)
 
 このファイルは「**現在の状態**」だけを持つ(運用ルールは CLAUDE.md「進捗管理ルール」参照)。
 
 ## 現在地
 
-**T006 実装完了(b723398、シード固定生成120問+検証テスト+シャッフル出題、80テスト)。verifier(puzzlegen再実行の再現性+生成問題の抜き取り独立検証+公開URL確認)+codex-review を並列検証中。** 残り: T007(ホーム画面・モード/カテゴリ選択・ヒント設定・仕上げ)で初期スコープ完了。
+**T006 done(verifier: 再現性SHA一致・全120問のPython独立検証で失敗0件、codex-review 指摘ゼロ)。最終タスク T007(ホーム画面・モード/カテゴリ選択・ヒント設定)を implementer に委譲中。** T007 done で初期スコープ(設計書 §1〜§6)完了 → ユーザーに完了報告。
 
 - 実装ロードマップ(設計書 §3-6 から分解、詳細タスクは着手時に起票):
   1. T001 scaffold(Vite+Preact+TS+Vitest+Pages デプロイ)← done
@@ -23,7 +23,7 @@
 
 | ID | タスク | 担当 | 状態 | 試行 |
 |---|---|---|---|---|
-| T006 | 問題量産(puzzlegen+アプリ組み込み) | codex(gpt-5.6-sol) | review | 0 |
+| T007 | ホーム画面・モード/カテゴリ選択・ヒント設定 | implementer | in_progress | 0 |
 
 ## 有効な方針・申し送り(今後のタスクに効くもの)
 
@@ -53,6 +53,7 @@
 | T004 | 練習フロー本体 | verifier が公開URLで1問サイクル全シナリオ実地再現(だいせいこう含む)、codex-review コードブロッカーなし。59テスト。中2件→T004a |
 | T004a | ひらがなラベル+再ポップ | codex-review 指摘ゼロ合格(verifier は差分小・実行済みのため省略)。61テスト |
 | T005 | モードB(お題・validate・strategyフロー) | verifier がPython独自実装で9問を手計算再検証+公開URL通し確認、codex-review 指摘ゼロ。74テスト。軽微申し送り: validate異常系テストは reasons 内容まで見ていない |
+| T006 | 問題量産(puzzlegen) | 120問(rule各難度10+strategy各30)。verifier: puzzlegen再実行SHA一致・全問Python独立検証0失敗・公開URLシャッフル確認。codex-review 指摘ゼロ。80テスト |
 
 ## 完了フェーズ
 
