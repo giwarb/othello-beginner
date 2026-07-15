@@ -372,7 +372,7 @@ const STRATEGY_TEXT: Record<StrategyCategory, { prompt: string; hint: string }> 
     hint: 'すみを　さがしてみよう',
   },
   'avoid-x': {
-    prompt: 'ばつの　ばしょは　やめよう',
+    prompt: 'えっくす　うちは　やめよう',
     hint: 'すみの　ななめよこは　あぶないよ',
   },
   'min-mobility': {

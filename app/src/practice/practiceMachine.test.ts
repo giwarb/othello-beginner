@@ -137,7 +137,7 @@ describe('strategy placing', () => {
 
   it.each([
     ['corner', 'すみを　とろう'],
-    ['avoid-x', 'ばつの　ばしょは　やめよう'],
+    ['avoid-x', 'えっくす　うちは　やめよう'],
     ['min-mobility', 'あいてが　うてる　ばしょが　すくなくなる　ところに　うとう'],
   ] as const)('uses the %s prompt', (category, prompt) => {
     expect(createPracticeState(strategyPuzzle(category)).prompt).toBe(prompt)

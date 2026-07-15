@@ -12,8 +12,8 @@ export interface HomeScreenProps {
 
 const CATEGORY_BUTTONS: ReadonlyArray<{ category: StrategyCategory; label: string }> = [
   { category: 'corner', label: 'すみを　とろう' },
-  { category: 'avoid-x', label: 'ばつの　ばしょは　やめよう' },
-  { category: 'min-mobility', label: 'うてる　ばしょを　へらそう' },
+  { category: 'avoid-x', label: 'えっくす　うちは　やめよう' },
+  { category: 'min-mobility', label: 'あいての　うてる　ばしょを　へらそう' },
 ]
 
 /** ホーム画面。れんしゅうモード/カテゴリの選択とヒント設定の切り替えを行う。 */
