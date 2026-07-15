@@ -1,7 +1,7 @@
 ---
 id: T006
 title: 問題量産(puzzlegen 生成スクリプト+機械検証フィルタ+アプリ組み込み)
-status: in_progress
+status: review
 assignee: codex
 attempts: 0
 ---
@@ -74,3 +74,12 @@ attempts: 0
 (なし)
 
 ## 作業ログ(担当エージェントが追記)
+
+- 2026-07-15 09:47:02 +09:00 Codex
+  - 実施内容: 固定シードのランダム自己対戦生成器を追加し、アプリ本体の `validateStrategy` を共用して rule 各難度10問、strategy 各カテゴリ30問（計120問）を生成。盤面・合法性・難度・カテゴリ・重複・件数・空きマス帯・シャッフル順の検証テストを追加。アプリは rule 難度1→2→3の各プール内とstrategyプールを起動時にシャッフルして出題するよう変更。
+  - `cd app && npm run puzzlegen`: 成功（seed=20260715、43局、rule各10問、corner/avoid-x/min-mobility各30問、約1秒）。再実行前後の生成物SHA-256一致。
+  - `cd app && npx vitest run`: 実行環境の子プロセス制限により起動時 `spawn EPERM`。一時的な空configと `--pool=vmThreads --maxWorkers=1` を用いた同一テスト実行は9ファイル・80テスト全件成功。一時configは削除済み。
+  - `cd app && npm run build`: `tsc -b` は成功後、同じ実行環境制限によりVite configロード時 `spawn EPERM`。別途 `npx tsc -b` 成功、Vite APIを `configFile: false` と既存Preact設定相当で実行した本番バンドルは24モジュール変換・成功。
+  - `cd app && npx tsc --ignoreConfig --noEmit --target es2023 --module esnext --moduleResolution bundler --allowImportingTsExtensions --types node ../puzzlegen/generate.ts`: 成功。
+  - `git diff --check`: 成功。
+  - コミットハッシュ: なし（Codex環境は `.git` 書き込み不可。オーケストレーターが代行）。
