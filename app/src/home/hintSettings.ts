@@ -15,10 +15,18 @@ function resolveStorage(storage?: SettingsStorage): SettingsStorage | undefined 
 
 /** ヒント設定を読み込む。保存されていない・保存先がない場合は既定オフ。 */
 export function loadHintEnabled(storage?: SettingsStorage): boolean {
-  return resolveStorage(storage)?.getItem(HINT_STORAGE_KEY) === 'true'
+  try {
+    return resolveStorage(storage)?.getItem(HINT_STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
 }
 
 /** ヒント設定を保存する。次回起動時も維持するために使う。 */
 export function saveHintEnabled(enabled: boolean, storage?: SettingsStorage): void {
-  resolveStorage(storage)?.setItem(HINT_STORAGE_KEY, enabled ? 'true' : 'false')
+  try {
+    resolveStorage(storage)?.setItem(HINT_STORAGE_KEY, enabled ? 'true' : 'false')
+  } catch {
+    // 保存できない環境でも、App が持つセッション内の設定はそのまま使う。
+  }
 }

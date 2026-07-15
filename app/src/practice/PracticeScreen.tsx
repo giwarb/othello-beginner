@@ -39,7 +39,12 @@ export function PracticeScreen({ selection, hintEnabled, onHome }: PracticeScree
       }
       const pool = puzzlesRef.current!
       if (current.puzzleIndex + 1 >= pool.length) {
-        puzzlesRef.current = poolForSelection(GENERATED_PUZZLES, selection)
+        puzzlesRef.current = poolForSelection(
+          GENERATED_PUZZLES,
+          selection,
+          Math.random,
+          pool[current.puzzleIndex].id,
+        )
         return createPracticeState(puzzlesRef.current)
       }
       return nextPuzzle(current, pool)

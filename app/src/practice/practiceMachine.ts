@@ -240,14 +240,22 @@ export function poolForSelection(
   puzzles: ReadonlyArray<PracticePuzzle>,
   selection: PracticeSelection,
   random: () => number = Math.random,
+  previousPuzzleId?: string,
 ): PracticePuzzle[] {
-  if (selection.mode === 'rule') {
-    return shuffledRulePuzzles(puzzles, random)
+  const pool = selection.mode === 'rule'
+    ? shuffledRulePuzzles(puzzles, random)
+    : shuffled(
+      puzzles.filter((puzzle) => puzzle.mode === 'strategy' && puzzle.category === selection.category),
+      random,
+    )
+
+  if (pool[0]?.id === previousPuzzleId) {
+    const differentIndex = pool.findIndex((puzzle) => puzzle.id !== previousPuzzleId)
+    if (differentIndex > 0) {
+      ;[pool[0], pool[differentIndex]] = [pool[differentIndex], pool[0]]
+    }
   }
-  return shuffled(
-    puzzles.filter((puzzle) => puzzle.mode === 'strategy' && puzzle.category === selection.category),
-    random,
-  )
+  return pool
 }
 
 function rows(...values: string[]): string {

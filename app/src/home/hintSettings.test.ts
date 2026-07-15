@@ -28,4 +28,24 @@ describe('hintSettings', () => {
   it('defaults to disabled when no storage is available', () => {
     expect(loadHintEnabled(undefined)).toBe(false)
   })
+
+  it('defaults to disabled when reading storage throws', () => {
+    const storage: SettingsStorage = {
+      getItem: () => {
+        throw new DOMException('blocked', 'SecurityError')
+      },
+      setItem: () => {},
+    }
+    expect(loadHintEnabled(storage)).toBe(false)
+  })
+
+  it('does not throw when writing storage fails', () => {
+    const storage: SettingsStorage = {
+      getItem: () => null,
+      setItem: () => {
+        throw new DOMException('blocked', 'SecurityError')
+      },
+    }
+    expect(() => saveHintEnabled(true, storage)).not.toThrow()
+  })
 })

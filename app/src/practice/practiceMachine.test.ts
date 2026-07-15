@@ -224,6 +224,7 @@ const MIXED_PUZZLES: ReadonlyArray<PracticePuzzle> = [
   { id: 'rule-3a', mode: 'rule', board: OPENING, turn: 'b', difficulty: 3 },
   { id: 'corner-a', mode: 'strategy', category: 'corner', board: OPENING, turn: 'b', answers: [19], difficulty: 1 },
   { id: 'corner-b', mode: 'strategy', category: 'corner', board: OPENING, turn: 'b', answers: [19], difficulty: 1 },
+  { id: 'corner-c', mode: 'strategy', category: 'corner', board: OPENING, turn: 'b', answers: [19], difficulty: 1 },
   {
     id: 'avoid-x-a',
     mode: 'strategy',
@@ -253,7 +254,7 @@ describe('poolForSelection', () => {
 
   it('keeps only the chosen category for a strategy selection', () => {
     const pool = poolForSelection(MIXED_PUZZLES, { mode: 'strategy', category: 'corner' }, () => 0)
-    expect(pool.map((puzzle) => puzzle.id).sort()).toEqual(['corner-a', 'corner-b'])
+    expect(pool.map((puzzle) => puzzle.id).sort()).toEqual(['corner-a', 'corner-b', 'corner-c'])
   })
 
   it('returns a single puzzle for a category with only one entry', () => {
@@ -269,7 +270,26 @@ describe('poolForSelection', () => {
       { mode: 'strategy', category: 'corner' },
       () => randomValues[index++ % randomValues.length],
     )
-    expect(new Set(pool.map((puzzle) => puzzle.id))).toEqual(new Set(['corner-a', 'corner-b']))
+    expect(pool.map((puzzle) => puzzle.id)).toEqual(['corner-b', 'corner-a', 'corner-c'])
+  })
+
+  it('does not repeat the previous puzzle across a reshuffle boundary', () => {
+    const previousPool = poolForSelection(
+      MIXED_PUZZLES,
+      { mode: 'strategy', category: 'corner' },
+      () => 0,
+    )
+    const previousPuzzleId = previousPool.at(-1)!.id
+    const nextPool = poolForSelection(
+      MIXED_PUZZLES,
+      { mode: 'strategy', category: 'corner' },
+      () => 0.9,
+      previousPuzzleId,
+    )
+
+    expect(previousPuzzleId).toBe('corner-a')
+    expect(nextPool.map((puzzle) => puzzle.id)).toEqual(['corner-b', 'corner-a', 'corner-c'])
+    expect(nextPool[0].id).not.toBe(previousPuzzleId)
   })
 })
 
