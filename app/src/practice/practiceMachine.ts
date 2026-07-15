@@ -9,6 +9,11 @@ import type { Puzzle, StrategyCategory } from '../puzzles/types'
 
 export type PracticePuzzle = Puzzle
 
+/** ホーム画面で選べる練習モード/カテゴリ。 */
+export type PracticeSelection =
+  | { mode: 'rule' }
+  | { mode: 'strategy'; category: StrategyCategory }
+
 export interface MissCounts {
   placing: number
   flipping: number
@@ -191,6 +196,17 @@ export function nextPuzzle(
   return puzzleState(puzzles, state.puzzleIndex + 1)
 }
 
+/**
+ * ヒントで示すマスの集合。「ヒントあり」設定のときだけ呼び出す想定。
+ * おく段階でのみ意味を持つ(モードAは合法手、モードBは正解手)。
+ */
+export function hintPositions(state: PracticeState): ReadonlyArray<number> {
+  if (state.phase !== 'placing') {
+    return []
+  }
+  return state.answers ?? state.legalMoves
+}
+
 function shuffled<T>(items: ReadonlyArray<T>, random: () => number): T[] {
   const result = [...items]
   for (let index = result.length - 1; index > 0; index -= 1) {
@@ -200,16 +216,38 @@ function shuffled<T>(items: ReadonlyArray<T>, random: () => number): T[] {
   return result
 }
 
+function shuffledRulePuzzles(
+  puzzles: ReadonlyArray<PracticePuzzle>,
+  random: () => number,
+): PracticePuzzle[] {
+  return ([1, 2, 3] as const).flatMap((difficulty) =>
+    shuffled(puzzles.filter((puzzle) => puzzle.mode === 'rule' && puzzle.difficulty === difficulty), random),
+  )
+}
+
 /** ルール問題は難度順を保ち、各難度内と考える問題全体をシャッフルする。 */
 export function shuffledPracticePuzzles(
   puzzles: ReadonlyArray<PracticePuzzle>,
   random: () => number = Math.random,
 ): PracticePuzzle[] {
-  const rules = ([1, 2, 3] as const).flatMap((difficulty) =>
-    shuffled(puzzles.filter((puzzle) => puzzle.mode === 'rule' && puzzle.difficulty === difficulty), random),
-  )
+  const rules = shuffledRulePuzzles(puzzles, random)
   const strategies = shuffled(puzzles.filter((puzzle) => puzzle.mode === 'strategy'), random)
   return [...rules, ...strategies]
+}
+
+/** ホームで選んだモード/カテゴリだけを対象にした出題プールをシャッフルして作る。 */
+export function poolForSelection(
+  puzzles: ReadonlyArray<PracticePuzzle>,
+  selection: PracticeSelection,
+  random: () => number = Math.random,
+): PracticePuzzle[] {
+  if (selection.mode === 'rule') {
+    return shuffledRulePuzzles(puzzles, random)
+  }
+  return shuffled(
+    puzzles.filter((puzzle) => puzzle.mode === 'strategy' && puzzle.category === selection.category),
+    random,
+  )
 }
 
 function rows(...values: string[]): string {

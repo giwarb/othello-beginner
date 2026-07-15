@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { flippedDiscs, parseBoard, serializeBoard } from '../core/othello'
 import {
   createPracticeState,
+  hintPositions,
   nextPuzzle,
+  poolForSelection,
   PRACTICE_PUZZLES,
   pressOk,
   tapCell,
@@ -212,5 +214,81 @@ describe('result and next puzzle', () => {
     expect(secondFlipping.phase).toBe('flipping')
     const secondResult = pressOk(flipAll(secondFlipping as FlippingState))
     expect(nextPuzzle(secondResult, PUZZLES).puzzleIndex).toBe(0)
+  })
+})
+
+const MIXED_PUZZLES: ReadonlyArray<PracticePuzzle> = [
+  { id: 'rule-1a', mode: 'rule', board: OPENING, turn: 'b', difficulty: 1 },
+  { id: 'rule-1b', mode: 'rule', board: OPENING, turn: 'b', difficulty: 1 },
+  { id: 'rule-2a', mode: 'rule', board: OPENING, turn: 'b', difficulty: 2 },
+  { id: 'rule-3a', mode: 'rule', board: OPENING, turn: 'b', difficulty: 3 },
+  { id: 'corner-a', mode: 'strategy', category: 'corner', board: OPENING, turn: 'b', answers: [19], difficulty: 1 },
+  { id: 'corner-b', mode: 'strategy', category: 'corner', board: OPENING, turn: 'b', answers: [19], difficulty: 1 },
+  {
+    id: 'avoid-x-a',
+    mode: 'strategy',
+    category: 'avoid-x',
+    board: OPENING,
+    turn: 'b',
+    answers: [19],
+    difficulty: 1,
+  },
+  {
+    id: 'min-mobility-a',
+    mode: 'strategy',
+    category: 'min-mobility',
+    board: OPENING,
+    turn: 'b',
+    answers: [19],
+    difficulty: 1,
+  },
+]
+
+describe('poolForSelection', () => {
+  it('keeps only rule puzzles in difficulty order for the rule selection', () => {
+    const pool = poolForSelection(MIXED_PUZZLES, { mode: 'rule' }, () => 0)
+    expect(pool.map((puzzle) => puzzle.mode)).toEqual(['rule', 'rule', 'rule', 'rule'])
+    expect(pool.map((puzzle) => puzzle.difficulty)).toEqual([1, 1, 2, 3])
+  })
+
+  it('keeps only the chosen category for a strategy selection', () => {
+    const pool = poolForSelection(MIXED_PUZZLES, { mode: 'strategy', category: 'corner' }, () => 0)
+    expect(pool.map((puzzle) => puzzle.id).sort()).toEqual(['corner-a', 'corner-b'])
+  })
+
+  it('returns a single puzzle for a category with only one entry', () => {
+    const pool = poolForSelection(MIXED_PUZZLES, { mode: 'strategy', category: 'avoid-x' }, () => 0)
+    expect(pool.map((puzzle) => puzzle.id)).toEqual(['avoid-x-a'])
+  })
+
+  it('shuffles within the selected pool using the given random source', () => {
+    const randomValues = [0.9, 0.1]
+    let index = 0
+    const pool = poolForSelection(
+      MIXED_PUZZLES,
+      { mode: 'strategy', category: 'corner' },
+      () => randomValues[index++ % randomValues.length],
+    )
+    expect(new Set(pool.map((puzzle) => puzzle.id))).toEqual(new Set(['corner-a', 'corner-b']))
+  })
+})
+
+describe('hintPositions', () => {
+  it('returns the legal moves while placing in rule mode', () => {
+    const state = createPracticeState(PUZZLES)
+    expect(hintPositions(state)).toEqual(state.legalMoves)
+  })
+
+  it('returns the answers while placing in strategy mode', () => {
+    const state = createPracticeState(strategyPuzzle('corner'))
+    expect(hintPositions(state)).toEqual([19])
+  })
+
+  it('returns nothing once past the placing phase', () => {
+    const flipping = startFlipping()
+    expect(hintPositions(flipping)).toEqual([])
+
+    const result = pressOk(flipAll(flipping))
+    expect(hintPositions(result)).toEqual([])
   })
 })
