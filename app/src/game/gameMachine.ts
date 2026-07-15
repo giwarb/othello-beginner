@@ -110,6 +110,19 @@ export function enteredGameOver(previous: GameState, next: GameState): next is G
   return previous.phase !== 'gameOver' && next.phase === 'gameOver'
 }
 
+export interface GameRecorders {
+  addCompleted: () => void
+  addWin: () => void
+}
+
+function recordGameTransition(previous: GameState, next: GameState, recorders: GameRecorders): void {
+  if (!enteredGameOver(previous, next)) return
+  recorders.addCompleted()
+  if (next.result.outcome === 'win') {
+    recorders.addWin()
+  }
+}
+
 export function tapGameCell(state: GameState, position: number): GameState {
   if (state.phase !== 'player') return state
   const practice = tapCell(state.practice, position)
@@ -140,6 +153,13 @@ export function pressGameOk(state: GameState): GameState {
   return beginCpuTurn(practice.board, practice.misses, practice.messageSeq, practice.placedPosition)
 }
 
+/** OK による状態遷移と、その遷移で成立した記録加算を同期的に行う。 */
+export function pressGameOkAndRecord(state: GameState, recorders: GameRecorders): GameState {
+  const next = pressGameOk(state)
+  recordGameTransition(state, next, recorders)
+  return next
+}
+
 /** CPU の思考待ち後に呼び、選択した着手を自動適用する。 */
 export function playCpuTurn(state: GameState, random: () => number = Math.random): GameState {
   if (state.phase !== 'cpu') return state
@@ -152,4 +172,15 @@ export function playCpuTurn(state: GameState, random: () => number = Math.random
 export function finishCpuPass(state: GameState): GameState {
   if (state.phase !== 'cpuPass') return state
   return beginPlayerTurn(state.board, state.misses, state.messageSeq, state.lastMove)
+}
+
+/** CPU タイマーによる状態遷移と、その遷移で成立した記録加算を同期的に行う。 */
+export function advanceCpuAndRecord(
+  state: GameState,
+  recorders: GameRecorders,
+  random: () => number = Math.random,
+): GameState {
+  const next = state.phase === 'cpu' ? playCpuTurn(state, random) : finishCpuPass(state)
+  recordGameTransition(state, next, recorders)
+  return next
 }

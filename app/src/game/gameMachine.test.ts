@@ -1,15 +1,35 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { legalMoves, parseBoard, serializeBoard } from '../core/othello'
+import { addCompleted, addWin, loadRecords, type RecordsStorage } from '../records/records'
 import { chooseCpuMove } from './cpu'
 import {
+  advanceCpuAndRecord,
   createGameState,
   enteredGameOver,
   finishCpuPass,
   playCpuTurn,
   pressGameOk,
+  pressGameOkAndRecord,
   tapGameCell,
   type GameState,
 } from './gameMachine'
+
+function memoryStorage(): RecordsStorage {
+  const store = new Map<string, string>()
+  return {
+    getItem: (key) => store.get(key) ?? null,
+    setItem: (key, value) => {
+      store.set(key, value)
+    },
+  }
+}
+
+function recordersFor(storage: RecordsStorage) {
+  return {
+    addCompleted: vi.fn(() => addCompleted(storage)),
+    addWin: vi.fn(() => addWin(storage)),
+  }
+}
 
 function completePlayerMove(state: GameState, move: number): GameState {
   let current = tapGameCell(state, move)
@@ -160,6 +180,67 @@ describe('enteredGameOver', () => {
     const again = pressGameOk(gameOver)
     expect(again).toBe(gameOver)
     expect(enteredGameOver(gameOver, again)).toBe(false)
+  })
+})
+
+describe('game record transitions', () => {
+  const PLAYER_FINAL_BOARD = '-w' + 'b'.repeat(62)
+  const CPU_FINAL_BOARD = '-b' + 'w'.repeat(62)
+
+  function finishWinningPlayerGame(
+    recorders: ReturnType<typeof recordersFor>,
+    initial: GameState = createGameState(parseBoard(PLAYER_FINAL_BOARD)),
+  ): GameState {
+    let state = initial
+    state = tapGameCell(state, 0)
+    state = tapGameCell(state, 1)
+    return pressGameOkAndRecord(state, recorders)
+  }
+
+  it('records completed and wins exactly once on the player OK terminal path', () => {
+    const storage = memoryStorage()
+    const recorders = recordersFor(storage)
+
+    const gameOver = finishWinningPlayerGame(recorders)
+    const processedAgain = pressGameOkAndRecord(gameOver, recorders)
+
+    expect(gameOver.phase).toBe('gameOver')
+    expect(processedAgain).toBe(gameOver)
+    expect(recorders.addCompleted).toHaveBeenCalledTimes(1)
+    expect(recorders.addWin).toHaveBeenCalledTimes(1)
+    expect(loadRecords(storage)).toEqual({ greatSuccess: 0, completed: 1, wins: 1 })
+  })
+
+  it('records completed but not wins on the CPU timer terminal path', () => {
+    const storage = memoryStorage()
+    const recorders = recordersFor(storage)
+    const board = parseBoard(CPU_FINAL_BOARD)
+    const cpuState: GameState = {
+      phase: 'cpu', board, misses: { placing: 0, flipping: 0, earlyOk: 0 },
+      message: 'あいての　ばん', messageSeq: 1,
+    }
+
+    const gameOver = advanceCpuAndRecord(cpuState, recorders, () => 0)
+
+    expect(gameOver.phase).toBe('gameOver')
+    expect(recorders.addCompleted).toHaveBeenCalledTimes(1)
+    expect(recorders.addWin).not.toHaveBeenCalled()
+    expect(loadRecords(storage)).toEqual({ greatSuccess: 0, completed: 1, wins: 0 })
+  })
+
+  it('records another completion and win after もういちど starts a new game', () => {
+    const storage = memoryStorage()
+    const recorders = recordersFor(storage)
+
+    const firstGameOver = finishWinningPlayerGame(recorders)
+    expect(firstGameOver.phase).toBe('gameOver')
+    const restarted = createGameState(parseBoard(PLAYER_FINAL_BOARD))
+    expect(restarted.phase).toBe('player')
+    finishWinningPlayerGame(recorders, restarted)
+
+    expect(recorders.addCompleted).toHaveBeenCalledTimes(2)
+    expect(recorders.addWin).toHaveBeenCalledTimes(2)
+    expect(loadRecords(storage)).toEqual({ greatSuccess: 0, completed: 2, wins: 2 })
   })
 })
 

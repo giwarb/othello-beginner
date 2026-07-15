@@ -4,7 +4,7 @@ import { MessageBar } from '../components/MessageBar'
 import { TurnBadge } from '../components/TurnBadge'
 import { addCompleted, addWin } from '../records/records'
 import {
-  createGameState, enteredGameOver, finishCpuPass, playCpuTurn, pressGameOk, tapGameCell,
+  advanceCpuAndRecord, createGameState, pressGameOkAndRecord, tapGameCell,
   type GameResult, type GameState,
 } from './gameMachine'
 import './GameScreen.css'
@@ -14,15 +14,7 @@ export interface GameScreenProps {
   onComplete?: (result: GameResult) => void
 }
 
-/** 終局への遷移そのものに同期して、完走・勝ちを1回だけ加算する。 */
-function recordGameResult(previous: GameState, next: GameState): void {
-  if (enteredGameOver(previous, next)) {
-    addCompleted()
-    if (next.result.outcome === 'win') {
-      addWin()
-    }
-  }
-}
+const GAME_RECORDERS = { addCompleted, addWin }
 
 export function GameScreen({ onHome, onComplete }: GameScreenProps) {
   const [state, setState] = useState<GameState>(createGameState)
@@ -32,9 +24,7 @@ export function GameScreen({ onHome, onComplete }: GameScreenProps) {
     if (state.phase !== 'cpu' && state.phase !== 'cpuPass') return
     const timer = window.setTimeout(() => {
       setState((current) => {
-        const next = current.phase === 'cpu' ? playCpuTurn(current) : finishCpuPass(current)
-        recordGameResult(current, next)
-        return next
+        return advanceCpuAndRecord(current, GAME_RECORDERS)
       })
     }, state.phase === 'cpu' ? 800 : 1000)
     return () => window.clearTimeout(timer)
@@ -52,11 +42,7 @@ export function GameScreen({ onHome, onComplete }: GameScreenProps) {
     setState(createGameState())
   }
   const handlePressGameOk = () => {
-    setState((current) => {
-      const next = pressGameOk(current)
-      recordGameResult(current, next)
-      return next
-    })
+    setState((current) => pressGameOkAndRecord(current, GAME_RECORDERS))
   }
   const isPlayer = state.phase === 'player' || state.phase === 'playerPass'
   const canPressOk = state.phase === 'playerPass' || (state.phase === 'player' && state.practice.phase === 'flipping')

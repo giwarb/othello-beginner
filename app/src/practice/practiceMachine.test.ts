@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { flippedDiscs, parseBoard, serializeBoard } from '../core/othello'
+import { addGreatSuccess, loadRecords, type RecordsStorage } from '../records/records'
 import {
   createPracticeState,
   enteredGreatSuccess,
@@ -8,6 +9,7 @@ import {
   poolForSelection,
   PRACTICE_PUZZLES,
   pressOk,
+  pressOkAndRecord,
   tapCell,
   type FlippingState,
   type PracticePuzzle,
@@ -52,6 +54,16 @@ function flipAll(state: FlippingState): PracticeState {
     current = tapCell(current, position)
   }
   return current
+}
+
+function memoryStorage(): RecordsStorage {
+  const store = new Map<string, string>()
+  return {
+    getItem: (key) => store.get(key) ?? null,
+    setItem: (key, value) => {
+      store.set(key, value)
+    },
+  }
 }
 
 describe('placing', () => {
@@ -246,6 +258,35 @@ describe('enteredGreatSuccess', () => {
     const again = pressOk(result)
     expect(again).toBe(result)
     expect(enteredGreatSuccess(result, again)).toBe(false)
+  })
+})
+
+describe('practice record transition', () => {
+  it('increments greatSuccess exactly once when OK enters だいせいこう', () => {
+    const storage = memoryStorage()
+    const record = vi.fn(() => addGreatSuccess(storage))
+
+    const result = pressOkAndRecord(flipAll(startFlipping()), record)
+
+    expect(result.phase).toBe('result')
+    expect(record).toHaveBeenCalledTimes(1)
+    expect(loadRecords(storage)).toEqual({ greatSuccess: 1, completed: 0, wins: 0 })
+  })
+
+  it('does not increment for せいこう or when the user exits midway', () => {
+    const storage = memoryStorage()
+    const record = vi.fn(() => addGreatSuccess(storage))
+    const withMiss = tapCell(createPracticeState(PUZZLES), 0)
+    const flipping = tapCell(withMiss, 19) as FlippingState
+
+    const result = pressOkAndRecord(flipAll(flipping), record)
+    const exitedMidway = tapCell(createPracticeState(PUZZLES), 19)
+
+    expect(result.phase).toBe('result')
+    if (result.phase === 'result') expect(result.result).toBe('せいこう')
+    expect(exitedMidway.phase).toBe('flipping')
+    expect(record).not.toHaveBeenCalled()
+    expect(loadRecords(storage)).toEqual({ greatSuccess: 0, completed: 0, wins: 0 })
   })
 })
 

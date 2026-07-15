@@ -194,6 +194,18 @@ export function enteredGreatSuccess(previous: PracticeState, next: PracticeState
   return previous !== next && next.phase === 'result' && next.result === 'だいせいこう'
 }
 
+/** OK による状態遷移と、その遷移で成立した記録加算を同期的に行う。 */
+export function pressOkAndRecord(
+  state: PracticeState,
+  addGreatSuccess: () => void,
+): PracticeState {
+  const next = pressOk(state)
+  if (enteredGreatSuccess(state, next)) {
+    addGreatSuccess()
+  }
+  return next
+}
+
 export function nextPuzzle(
   state: PracticeState,
   puzzles: ReadonlyArray<PracticePuzzle>,

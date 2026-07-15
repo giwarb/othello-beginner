@@ -6,11 +6,10 @@ import { GENERATED_PUZZLES } from '../puzzles/generated'
 import { addGreatSuccess } from '../records/records'
 import {
   createPracticeState,
-  enteredGreatSuccess,
   hintPositions,
   nextPuzzle,
   poolForSelection,
-  pressOk,
+  pressOkAndRecord,
   tapCell,
   type PracticePuzzle,
   type PracticeSelection,
@@ -35,13 +34,7 @@ export function PracticeScreen({ selection, hintEnabled, onHome }: PracticeScree
   const [state, setState] = useState<PracticeState>(() => createPracticeState(puzzlesRef.current!))
 
   const handlePressOk = () => {
-    setState((current) => {
-      const next = pressOk(current)
-      if (enteredGreatSuccess(current, next)) {
-        addGreatSuccess()
-      }
-      return next
-    })
+    setState((current) => pressOkAndRecord(current, addGreatSuccess))
   }
 
   const handleNext = () => {
