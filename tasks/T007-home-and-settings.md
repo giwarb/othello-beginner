@@ -1,7 +1,7 @@
 ---
 id: T007
 title: ホーム画面・モード/カテゴリ選択・ヒント設定(初期スコープ仕上げ)
-status: in_progress
+status: review
 assignee: implementer
 attempts: 0
 ---
@@ -62,3 +62,38 @@ attempts: 0
 (なし)
 
 ## 作業ログ(担当エージェントが追記)
+
+### 2026-07-15 implementer
+
+- 実施内容:
+  - `app/src/home/HomeScreen.tsx` + `HomeScreen.css`(新規): 4種の練習ボタン(おいて　ひっくりかえす/すみを　とろう/ばつの　ばしょは　やめよう/うてる　ばしょを　へらそう)とヒントトグル(「ひんと　あり／なし」)を実装。
+  - `app/src/home/hintSettings.ts` + `hintSettings.test.ts`(新規): ヒント設定の localStorage 読み書き(キー `othello-beginner:hint-enabled`)。ストレージ未使用環境(Vitest node環境)でも安全に動くようガード。
+  - `app/src/app.tsx`: ホーム⇔練習画面を状態(useState)で切替。ヒント設定を App で保持し両画面に受け渡し。
+  - `app/src/practice/practiceMachine.ts`: `PracticeSelection` 型、`poolForSelection`(選択モード/カテゴリだけを対象にシャッフルしたプールを作る。ルールは既存の難度順シャッフルを再利用)、`hintPositions`(placing 段階でのみ、モードAは合法手・モードBは answers を返す)を追加。既存 `shuffledPracticePuzzles` は内部ヘルパー `shuffledRulePuzzles` を切り出して再利用する形にリファクタ(挙動は変更なし、既存テスト影響なし)。
+  - `app/src/practice/PracticeScreen.tsx`: `selection`/`hintEnabled`/`onHome` props を受け取るよう変更。ヘッダーに「おわる」ボタンを追加。ヒント有効時は `hintPositions` の結果を Board の highlights に渡す。プールを一巡したら `poolForSelection` で再シャッフルして継続するロジックを実装(useRef でプールを保持)。
+  - `app/src/practice/PracticeScreen.css`: ヘッダー行・「おわる」ボタンのスタイルを追加。
+  - `app/src/practice/practiceMachine.test.ts`: `poolForSelection`(ルール選択/カテゴリ選択/シャッフル確認)と `hintPositions`(モードA=合法手・モードB=answers・placing以外は空)のユニットテストを追加。
+
+- 実行コマンドと結果:
+  - `cd app && npx vitest run` → 10ファイル・90テスト全件パス。
+  - `cd app && npm run build` → 成功(`tsc -b && vite build`、dist生成確認)。
+
+- ローカル動作確認(vite dev、`.claude/launch.json` を一時作成し確認後に削除済み):
+  - ホームでヒントをオンにしてから「すみを　とろう」を選択 → corner カテゴリの問題が出題され、置ける場所(隅)がハイライト表示されることを確認。
+  - ヒント設定は localStorage(`othello-beginner:hint-enabled`)に保存され、ホーム⇔練習画面の往復・ページ再読み込み後も維持されることを確認。
+  - 「おわる」ボタンでホームへ戻れること、戻った後も選んだカテゴリ・モード表示が正しいことを確認。
+  - 375x812(スマホ縦)・1024x768(タブレット横)でホーム画面・練習画面ともに横スクロール(overflow-x)が発生しないことを `document.documentElement.scrollWidth` で確認。
+
+- コミット・デプロイ:
+  - コミット: `6a2b089185afc28112dba51b3b5f08124d8d2104`(「app: ホーム画面・モード/カテゴリ選択・ヒント設定を追加(T007)」)。`git add` は変更対象ファイルを個別指定(`git add -A`/`.` は使用せず)。
+  - `git push origin main` → 成功。GitHub Actions「Deploy to GitHub Pages」(run 29381226087)が成功(build/deployとも成功)。
+  - 公開URL https://giwarb.github.io/othello-beginner/ で受け入れ基準 (a)〜(e) を確認:
+    - (a) ホームから4種の練習ボタンが表示され選択できる。
+    - (b) 「すみを　とろう」選択で corner カテゴリの問題のみ出題(お題文言・ハイライト位置=隅で確認)。
+    - (c) ヒントオンで置ける場所(隅)がハイライト表示される(`.cell-highlight` の位置を DOM から確認)。
+    - (d) ヒント設定がページ再読み込み後も「ひんと　あり」のまま維持される。
+    - (e) 「おわる」ボタンでホーム画面に戻れる。
+    - レスポンシブ: 375x812・1024x768 双方でホーム(1カラム/2カラムグリッド)・練習画面とも横スクロールなしを確認。
+  - 作業完了時点の `git status --short` はクリーン(このタスク由来の未追跡・未コミット差分なし)。一時作成した `.claude/launch.json` は動作確認後に削除済み。
+
+- 仕様どおりにできなかった点: なし。
