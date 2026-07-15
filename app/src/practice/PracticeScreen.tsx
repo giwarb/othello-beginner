@@ -2,21 +2,20 @@ import { useState } from 'preact/hooks'
 import { Board } from '../components/Board'
 import { MessageBar } from '../components/MessageBar'
 import { TurnBadge } from '../components/TurnBadge'
-import { SAMPLE_STRATEGY_PUZZLES } from '../puzzles/samplePuzzles'
+import { GENERATED_PUZZLES } from '../puzzles/generated'
 import {
   createPracticeState,
   nextPuzzle,
-  PRACTICE_PUZZLES,
   pressOk,
+  shuffledPracticePuzzles,
   tapCell,
   type PracticeState,
 } from './practiceMachine'
 import './PracticeScreen.css'
 
-const ALL_PUZZLES = [...PRACTICE_PUZZLES, ...SAMPLE_STRATEGY_PUZZLES]
-
 export function PracticeScreen() {
-  const [state, setState] = useState<PracticeState>(() => createPracticeState(ALL_PUZZLES))
+  const [puzzles] = useState(() => shuffledPracticePuzzles(GENERATED_PUZZLES))
+  const [state, setState] = useState<PracticeState>(() => createPracticeState(puzzles))
 
   return (
     <main id='app-root'>
@@ -48,7 +47,7 @@ export function PracticeScreen() {
           <button
             class='practice-button practice-button-next'
             type='button'
-            onClick={() => setState((current) => nextPuzzle(current, ALL_PUZZLES))}
+            onClick={() => setState((current) => nextPuzzle(current, puzzles))}
           >
             つぎへ
           </button>

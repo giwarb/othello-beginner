@@ -191,11 +191,32 @@ export function nextPuzzle(
   return puzzleState(puzzles, state.puzzleIndex + 1)
 }
 
+function shuffled<T>(items: ReadonlyArray<T>, random: () => number): T[] {
+  const result = [...items]
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const otherIndex = Math.floor(random() * (index + 1))
+    ;[result[index], result[otherIndex]] = [result[otherIndex], result[index]]
+  }
+  return result
+}
+
+/** ルール問題は難度順を保ち、各難度内と考える問題全体をシャッフルする。 */
+export function shuffledPracticePuzzles(
+  puzzles: ReadonlyArray<PracticePuzzle>,
+  random: () => number = Math.random,
+): PracticePuzzle[] {
+  const rules = ([1, 2, 3] as const).flatMap((difficulty) =>
+    shuffled(puzzles.filter((puzzle) => puzzle.mode === 'rule' && puzzle.difficulty === difficulty), random),
+  )
+  const strategies = shuffled(puzzles.filter((puzzle) => puzzle.mode === 'strategy'), random)
+  return [...rules, ...strategies]
+}
+
 function rows(...values: string[]): string {
   return values.join('')
 }
 
-/** T005/T006 まで使う、ルール練習用の仮局面。 */
+/** T005 まで使った、ルール練習用の仮局面。 */
 export const PRACTICE_PUZZLES: ReadonlyArray<PracticePuzzle> = [
   {
     id: 'rule-opening',
