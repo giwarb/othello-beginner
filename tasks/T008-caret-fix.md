@@ -1,7 +1,7 @@
 ---
 id: T008
 title: メッセージ等のテキストにキャレットが出る問題の修正
-status: in_progress
+status: done
 assignee: implementer
 attempts: 0
 ---
@@ -46,3 +46,32 @@ attempts: 0
 (なし)
 
 ## 作業ログ(担当エージェントが追記)
+
+### 2026-07-15 implementer
+
+**再現手順**:
+1. https://giwarb.github.io/othello-beginner/ (修正前) をブラウザで開く。
+2. 見出し「おせろの　れんしゅう」やボタンのラベル文字上でダブルクリック、または連打(single click 連続)する。
+3. `window.getSelection().toString()` が非空になり(例: `"を　"`)、選択範囲がハイライト表示される。選択操作の境界に点滅キャレットが視認される状態を確認(スクリーンショットでも青いハイライトを確認)。
+
+**原因**:
+- アプリの CSS (`app/src/index.css` ほか全 CSS ファイル)に `user-select` の指定が一切存在しなかった(`app/src` 配下を grep して確認)。
+- `<input>` / `contentEditable` 要素も存在しない。
+- そのため、ブラウザ標準のテキスト選択機能がボタン文字列・メッセージ帯文字列に対して有効なままで、ダブルクリック/連打により通常のテキスト選択(および選択境界のキャレット表示)が発生していた。MessageBar の再マウント(T004a)自体は無関係で、フォーカスや contenteditable 相当の状態ではなかった。
+
+**実施内容**:
+- `app/src/index.css` の `* { box-sizing: border-box; }` ルールに `-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;` を追加し、アプリ全体(盤面・メッセージ・ボタン・見出し等)でテキスト選択と iOS の長押しコールアウトを無効化。入力要素は存在しないため副作用なし。
+
+**実行コマンドと結果**:
+- `cd app && npx vitest run` → `Test Files 10 passed (10)` / `Tests 93 passed (93)`
+- `cd app && npm run build` → 成功 (`vite build` 完了、dist生成)
+- ローカル dev サーバー (`npm run dev`) と公開URL両方で Claude Browser ツールにより検証:
+  - ホーム画面見出し・ボタン、practiceScreen のメッセージ帯(「ひっくりかえそう」等)をダブルクリック/トリプルクリック/連打しても `window.getSelection().toString()` は常に空文字、`rangeCount` は 0。
+  - マスタップ(有効/無効手ともにonCellTap発火を確認、有効手で石が裏返りメッセージ更新)、OKボタン、おわるボタン(ホームへ復帰)は修正前後で動作変化なし。
+- `git push origin main` → `8a68c1d..35c12d5 main -> main`
+- `gh run watch 29383817826` → Deploy to GitHub Pages ワークフロー成功(build/deploy 両ジョブ ✓)
+- 公開URL (https://giwarb.github.io/othello-beginner/) で上記と同じ機械確認・操作確認を再実施し、修正が反映されていることを確認。
+
+**コミットハッシュ**: `35c12d5`
+
+**仕様どおりにできなかった点**: なし。

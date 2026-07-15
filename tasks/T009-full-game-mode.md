@@ -1,7 +1,7 @@
 ---
 id: T009
 title: モードC「さいごまで　うとう」(1局とおしプレイ、弱CPU・パス・終局・石数勝負)
-status: todo
+status: in_progress
 assignee: codex
 attempts: 0
 ---
