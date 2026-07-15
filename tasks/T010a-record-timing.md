@@ -1,9 +1,9 @@
 ---
 id: T010a
 title: 記録加算のタイミング堅牢化(effect 依存の取りこぼし解消)
-status: review
+status: in_progress
 assignee: codex
-attempts: 1
+attempts: 2
 ---
 
 # T010a: 記録加算のタイミング堅牢化(effect 依存の取りこぼし解消)
@@ -58,6 +58,22 @@ T010 の codex-review 中指摘(`tasks/review/T010-stamp-book-codex-review.md` (
 2. 既存テストを壊さない。
 
 受け入れ基準は元のものに加えて、上記テストが `npx vitest run` に含まれること。
+
+### redo 2回目(2026-07-15、codex-review 再不合格。レポート: `tasks/review/T010a-record-timing-codex-review-redo1.md`)
+
+redo 1回目(コミット a5a9cff)で加算ロジックと6ケースのテストは合格評価。**残る不足は「途中終了では加算されない」テストが実際の終了経路を通していない**こと1点のみ:
+
+- 練習側のテストは途中状態の phase を確認しているだけで「おわる」処理を呼んでいない(自明に通る)。対局側には途中終了テスト自体がない。
+- `PracticeScreen.tsx` / `GameScreen.tsx` の「おわる」ハンドラに誤って加算が追加されても現テストは通ってしまう。
+
+対応(これだけをやる):
+
+1. **@testing-library/preact(+ jsdom 環境)を最小限導入**し、`PracticeScreen` と `GameScreen` をコンポーネントテストで描画する。記録関数は `vi.mock('../records/records')`(または既存の注入手段)でスパイ化する。
+2. テストケース: (a) 練習で途中(placing または flipping)に「おわる」をクリック → `onHome` が呼ばれ、加算関数はすべて0回。(b) 対局で途中(終局前)に「おわる」をクリック → 同様に加算0回。(c) 可能なら対局で終局到達時に加算が呼ばれることもコンポーネント経由で1ケース確認(既存の機械レベルテストの重複でよい)。
+3. Testing Library の導入は devDependencies 追加と vitest 設定(環境切替)の最小変更に留める。既存テスト(node 環境)を壊さない。
+4. STATUS.md の既存申し送り(T003: アニメーションの実DOM回帰テストは Testing Library 導入後)には**手を出さない**(導入だけしておけば将来タスクで使える)。
+
+受け入れ基準: 上記コンポーネントテストが `npx vitest run` に含まれ全件パスすること(他は元の基準のまま)。
 
 ## 作業ログ(担当エージェントが追記)
 
