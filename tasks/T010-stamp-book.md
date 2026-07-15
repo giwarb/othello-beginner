@@ -1,7 +1,7 @@
 ---
 id: T010
 title: がんばりの記録(すたんぷちょう)
-status: todo
+status: in_progress
 assignee: implementer
 attempts: 0
 ---

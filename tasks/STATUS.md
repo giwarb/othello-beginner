@@ -23,8 +23,7 @@
 
 | ID | タスク | 担当 | 状態 | 試行 |
 |---|---|---|---|---|
-| T009 | モードC さいごまで　うとう(1局とおし) | codex(gpt-5.6-sol) | review | 0 |
-| T010 | がんばりの記録(すたんぷちょう) | implementer | todo | 0 |
+| T010 | がんばりの記録(すたんぷちょう) | implementer | in_progress | 0 |
 
 ## 有効な方針・申し送り(今後のタスクに効くもの)
 
@@ -57,6 +56,7 @@
 | T006 | 問題量産(puzzlegen) | 120問(rule各難度10+strategy各30)。verifier: puzzlegen再実行SHA一致・全問Python独立検証0失敗・公開URLシャッフル確認。codex-review 指摘ゼロ。80テスト |
 | T007 | ホーム画面・選択・ヒント設定 | redo 1回(一巡境界の同一問題連続)。修正後 verifier(境界テストを手計算追跡)+codex-review とも合格。93テスト |
 | T008 | キャレット/テキスト選択禁止 | 原因=user-select未指定。全体にuser-select:none適用、公開URLで機械確認。1行CSSのため codex-review 省略 |
+| T009 | モードC さいごまで　うとう | verifier が公開URLで1局完走(パス自然発生・終局石数・ミス累積一致まで実地確認)、codex-review コード指摘ゼロ。108テスト |
 
 ## 完了フェーズ
 
