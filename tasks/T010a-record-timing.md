@@ -1,7 +1,7 @@
 ---
 id: T010a
 title: 記録加算のタイミング堅牢化(effect 依存の取りこぼし解消)
-status: in_progress
+status: review
 assignee: codex
 attempts: 1
 ---
@@ -87,3 +87,18 @@ T010 の codex-review 中指摘(`tasks/review/T010-stamp-book-codex-review.md` (
 - `git status --short` は空(当該タスク由来の差分・未追跡ファイルなし)。一時ファイル(`.claude/launch.json` 等)は今回作成していない。
 
 仕様どおりにできなかった点: なし。
+
+### 2026-07-15 12:47 JST implementer redo 1回目 実施
+
+- 状態遷移と記録加算をまとめた注入可能な関数を追加した。練習は `pressOkAndRecord`、対局は `pressGameOkAndRecord` / `advanceCpuAndRecord` を画面側の実経路から使用する。
+- メモリストレージと spy を注入し、だいせいこう +1、せいこう/途中終了 +0、プレイヤー OK 終局の完走/勝ち +1、CPU タイマー終局の完走 +1/勝ち +0、同一終局の再処理 +0、もういちど後の再終局 +1 を検証する5テストを追加した。
+
+実行コマンドと結果:
+- `cd app && npx vitest run` → Vite 設定読込中にサンドボックのプロセス生成制限 `spawn EPERM` で起動不可(テスト実行前)。
+- 同一テスを一時設定の runner/thread 方式で実行 → `Test Files 12 passed (12)` `Tests 127 passed (127)`。一時設定は実行後に削除済み。
+- `cd app && npx tsc -b --pretty false` → 成功。
+- `cd app && npm run build` → `tsc -b` は成功。続く Vite 設定読込中に同じ `spawn EPERM` で起動不可。
+- 同一 Vite 設定の一時 `.mjs` を native loader で読み込んだ `npx vite build` → 34 modules transformed、本番ビルド成功。一時設定は実行後に削除済み。
+- `git diff --check` → 問題なし。
+
+コミットハッシュ: なし(Codex 環境は `.git` 書き込み禁止のため、オーケストレーターが代行予定)。
