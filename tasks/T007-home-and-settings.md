@@ -1,9 +1,9 @@
 ---
 id: T007
 title: ホーム画面・モード/カテゴリ選択・ヒント設定(初期スコープ仕上げ)
-status: review
-assignee: implementer
-attempts: 0
+status: in_progress
+assignee: codex
+attempts: 1
 ---
 
 # T007: ホーム画面・モード/カテゴリ選択・ヒント設定(初期スコープ仕上げ)
@@ -105,3 +105,21 @@ attempts: 0
   - 作業完了時点の `git status --short` はクリーン(このタスク由来の未追跡・未コミット差分なし)。一時作成した `.claude/launch.json` は動作確認後に削除済み。
 
 - 仕様どおりにできなかった点: なし。
+
+### 2026-07-15 verifier
+
+- 対象コミット: `6a2b089`(main push済み、GitHub Actions デプロイ成功報告あり)。実装者の記録に頼らず自分で再検証した。
+- 実施内容と結果:
+  1. `cd app && npx vitest run` → 10ファイル・90テスト全件パス。
+     - `app/src/practice/practiceMachine.test.ts` の `poolForSelection` テストは、テストファイル内で自前定義した `MIXED_PUZZLES`(rule/corner/avoid-x/min-mobility を混在させた合成データ)を使ってカテゴリ選択を検証しており、`app/src/puzzles/generated.ts` の実データそのものは使っていない(ロジック検証としては妥当だが「実データでの検証」ではない)。
+     - `hintPositions` テストは (a) rule モードで `legalMoves` と一致、(b) strategy モードで `answers` と一致、(c) placing 以外の phase(flipping/result)で空配列、を検証しており要件を満たす。
+  2. `cd app && npm run build` → 成功(`tsc -b && vite build`、`dist/` 生成確認)。
+  3. 公開URL https://giwarb.github.io/othello-beginner/ を Claude Browser で実操作(注: このセッションでは `computer` action の `screenshot` が毎回タイムアウトしたため、視認はできず。`read_page`/`javascript_tool` によるDOM検査とクリックイベント発火で操作を継続。ref クリックの一部が反映確認前に読み取ってしまい誤判定しかけた点があったため、以降は操作後に再読み取りして確定させた)。
+     - (a) ホームに4ボタン(おいて　ひっくりかえす/すみを　とろう/ばつの　ばしょは　やめよう/うてる　ばしょを　へらそう)+「ひんと　あり／なし」トグルを確認。`localStorage` を空にして再読み込みすると既定は「ひんと　なし」であることも確認。
+     - (b)(c) ヒントをオンにし「ばつの　ばしょは　やめよう」を選択 → 出題された盤面文字列を `app/src/puzzles/generated.ts` と突き合わせ、1問目 `generated-avoid-x-21`、2問目 `generated-avoid-x-24` がいずれも `category: "avoid-x"` であることを確認(カテゴリ絞り込みOK)。同時にハイライトされたマス番号がその問題の `answers` 配列と完全一致することを確認(例: 21番は `[3,4,10,12,13,22,31,33,39,41,46,47,57,58,61]` と一致)。1問目は解答→OK→つぎへで2問目へ進み、2問目の途中で「おわる」を押してホームに戻れることを確認(e)。
+     - モードA(おいて　ひっくりかえす)でもヒントオンで出題された盤面・手番から `app/src/core/othello.ts` の `legalMoves` を独立計算(Node上でTS→JSトランスパイルして実行)し、DOM上のハイライト `[18,34,44]` と完全一致することを確認。
+     - (d) ヒントを「あり」にしてページを再読み込み後も「ひんと　あり」のままであることを確認(localStorageキー `othello-beginner:hint-enabled` = `"true"`)。
+     - (f) 375x812 と 1024x768 の両方で、ホーム画面・練習画面とも `document.documentElement.scrollWidth === clientWidth`(横スクロールなし)を確認。
+  4. 表示文言のカタカナ・漢字チェック: `HomeScreen.tsx`/`PracticeScreen.tsx`/`app.tsx` のソースと実機DOM文言を確認。新規文言(ボタン4種・「ひんと　あり／なし」・「おわる」)はすべてひらがなで、カタカナ・漢字なし。既存文言込みで唯一の例外は「OK」ボタン、数字はミス回数(◯かい)のみで、これらは受け入れ基準どおり許容範囲内。算用数字を含む他の表示文言は見つからなかった。
+  5. `git status --short` → `tasks/STATUS.md` と `tasks/T007-home-and-settings.md` の2件のみ変更(いずれもタスク管理用メタデータの更新で、T007 実装由来のコード差分・未追跡ファイルではない)。未追跡ファイルなし(`git ls-files --others --exclude-standard` で確認)。ブランチは `origin/main` と同期済み。
+- 総合判定: 合格。上記「実データで検証していない」点は要件が明示的に求める範囲を超える観察事項であり、受け入れ基準そのものの不合格理由にはならないと判断した。
