@@ -1,7 +1,7 @@
 ---
 id: T009
 title: モードC「さいごまで　うとう」(1局とおしプレイ、弱CPU・パス・終局・石数勝負)
-status: in_progress
+status: review
 assignee: codex
 attempts: 0
 ---
@@ -71,3 +71,9 @@ attempts: 0
 (なし)
 
 ## 作業ログ(担当エージェントが追記)
+
+- 2026-07-15 Codex: モードCの対局状態機械、合法手から一様ランダムに選ぶCPU、対局画面、ホーム/画面切替を実装。プレイヤー操作は `practiceMachine` の `tapCell` / `pressOk` を再利用し、文言とミス加算を共通化。終局結果は `GameScreen` の `onComplete` コールバックで通知する形とした。
+- テスト: `cd app && npx vitest run` は Vite の `net use` および Vitest fork がサンドボックスの `spawn EPERM` で起動前停止。Windowsドライブ確認のみ一時プリロードで無効化し、forkを使わない同等コマンド `npx vitest run --pool=threads` を実行して 11ファイル・108テスト全件成功（新規テストはプレイヤー着手→CPU応手、双方のパス、双方合法手なし/満杯終局、3勝敗、ミス累積、CPU合法手、開始局面からの1局完走を確認）。一時ファイルは削除済み。
+- ビルド: 同じ一時プリロード下で `cd app && npm run build` を実行し成功（TypeScriptコンパイル、Vite本番ビルド、31モジュール変換）。一時ファイルは削除済み。
+- 公開URL操作確認: このワーカー環境は `.git` 書き込み・commit・pushが禁止されているため未実施。オーケストレーターによるcommit/push・デプロイ後に、実際のパス表示と終局表示（石数・勝敗・ミス内訳）を確認する必要あり。
+- コミットハッシュ: なし（Codex環境ではコミット不可）。
