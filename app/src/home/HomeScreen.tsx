@@ -6,6 +6,7 @@ export interface HomeScreenProps {
   hintEnabled: boolean
   onHintChange: (enabled: boolean) => void
   onSelect: (selection: PracticeSelection) => void
+  onGame: () => void
 }
 
 const CATEGORY_BUTTONS: ReadonlyArray<{ category: StrategyCategory; label: string }> = [
@@ -15,7 +16,7 @@ const CATEGORY_BUTTONS: ReadonlyArray<{ category: StrategyCategory; label: strin
 ]
 
 /** ホーム画面。れんしゅうモード/カテゴリの選択とヒント設定の切り替えを行う。 */
-export function HomeScreen({ hintEnabled, onHintChange, onSelect }: HomeScreenProps) {
+export function HomeScreen({ hintEnabled, onHintChange, onSelect, onGame }: HomeScreenProps) {
   return (
     <main id='app-root' class='home-screen'>
       <h1>おせろの　れんしゅう</h1>
@@ -33,6 +34,9 @@ export function HomeScreen({ hintEnabled, onHintChange, onSelect }: HomeScreenPr
             {label}
           </button>
         ))}
+        <button class='home-button home-button-game' type='button' onClick={onGame}>
+          さいごまで　うとう
+        </button>
       </div>
       <button
         class='home-hint-toggle'

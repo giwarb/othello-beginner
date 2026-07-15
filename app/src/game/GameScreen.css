@@ -1,0 +1,16 @@
+.game-header { width: min(92vw, 640px); display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.game-header h1 { margin: 0; }
+.game-button { min-width: 9rem; min-height: 3.5rem; border: 0; border-radius: 999px; padding: 0.65rem 1.6rem; font: inherit; font-size: 1.5rem; font-weight: 800; color: #fff; cursor: pointer; box-shadow: 0 0.3rem 0 rgba(0, 0, 0, 0.2); }
+.game-button:active { transform: translateY(0.2rem); }
+.game-button-home { min-width: 6rem; min-height: 3rem; padding: 0.5rem 1.1rem; font-size: 1.1rem; background: #8a8f98; }
+.game-button-ok { background: #e36b24; }
+.game-button-again { margin-top: 0.8rem; background: #347d3e; }
+.game-turn-text { margin: -0.5rem 0; font-size: 1.35rem; font-weight: 800; }
+.game-result { width: min(92vw, 34rem); padding: 1rem 1.2rem 1.4rem; border-radius: 1.4rem; background: #fff; box-shadow: 0 0.25rem 0.8rem rgba(0, 0, 0, 0.15); }
+.game-result-win { border: 0.3rem solid #f2b705; background: #fff9d9; }
+.game-hanamaru { margin: -0.3rem 0; color: #ef5b49; font-size: 4.5rem; font-weight: 900; line-height: 1; }
+.game-score { margin: 0.4rem 0 0.8rem; font-size: 1.35rem; font-weight: 800; }
+.game-misses { margin: 0; }
+.game-misses div { display: flex; justify-content: space-between; gap: 1rem; padding: 0.35rem 0; border-bottom: 1px solid #d9e8da; }
+.game-misses dt, .game-misses dd { margin: 0; font-weight: 700; }
+@media (max-height: 820px) { .game-result { padding-top: 0.6rem; } .game-hanamaru { font-size: 3.5rem; } }

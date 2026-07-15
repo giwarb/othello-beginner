@@ -30,6 +30,10 @@
   box-shadow: 0 0.1rem 0 rgba(0, 0, 0, 0.2);
 }
 
+.home-button-game {
+  background: #e36b24;
+}
+
 .home-hint-toggle {
   min-width: 10rem;
   min-height: 3.5rem;
