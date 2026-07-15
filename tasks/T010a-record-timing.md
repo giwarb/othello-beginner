@@ -1,7 +1,7 @@
 ---
 id: T010a
 title: 記録加算のタイミング堅牢化(effect 依存の取りこぼし解消)
-status: in_progress
+status: review
 assignee: codex
 attempts: 2
 ---
@@ -116,5 +116,20 @@ redo 1回目(コミット a5a9cff)で加算ロジックと6ケースのテスト
 - `cd app && npm run build` → `tsc -b` は成功。続く Vite 設定読込中に同じ `spawn EPERM` で起動不可。
 - 同一 Vite 設定の一時 `.mjs` を native loader で読み込んだ `npx vite build` → 34 modules transformed、本番ビルド成功。一時設定は実行後に削除済み。
 - `git diff --check` → 問題なし。
+
+コミットハッシュ: なし(Codex 環境は `.git` 書き込み禁止のため、オーケストレーターが代行予定)。
+
+### 2026-07-15 13:04 JST implementer redo 2回目 実施
+
+- `@testing-library/preact` と `jsdom` を devDependencies に追加した。新規コンポーネントテストだけ `@vitest-environment jsdom` を指定し、既存テストの node 環境は変更していない。
+- `PracticeScreen` を placing 中、`GameScreen` を終局前の player 状態で描画し、実際の「おわる」ボタンをクリックする2テストを追加した。両テストで `onHome` が1回呼ばれ、`addGreatSuccess` / `addCompleted` / `addWin` がすべて0回であることをモックで直接検証した。
+
+実行コマンドと結果:
+- `cd app && npx vitest run` → Vite 設定読込中にサンドボックスのプロセス生成制限 `spawn EPERM` で起動不可(テスト実行前)。
+- 同一設定を native loader で読み込む一時設定を使って `npx vitest run` → `Test Files 13 passed (13)` `Tests 129 passed (129)`(新規コンポーネントテスト2件を含む)。一時設定は実行後に削除済み。
+- `cd app && npm run build` → `tsc -b` は成功。続く Vite 設定読込中に同じ `spawn EPERM` で起動不可。
+- 同一 Vite 設定を native loader で読み込んだ `npx vite build` → 34 modules transformed、本番ビルド成功。一時設定は実行後に削除済み。
+- `cd app && npx tsc -b --pretty false` → 成功。
+- `cd app && git diff --check` → 問題なし。
 
 コミットハッシュ: なし(Codex 環境は `.git` 書き込み禁止のため、オーケストレーターが代行予定)。
