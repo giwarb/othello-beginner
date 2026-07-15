@@ -5,11 +5,9 @@ import {
   type Board,
   type Color,
 } from '../core/othello'
+import type { Puzzle, StrategyCategory } from '../puzzles/types'
 
-export interface PracticePuzzle {
-  board: string
-  turn: Color
-}
+export type PracticePuzzle = Puzzle
 
 export interface MissCounts {
   placing: number
@@ -22,8 +20,12 @@ interface CommonState {
   turn: Color
   puzzleIndex: number
   legalMoves: ReadonlyArray<number>
+  category?: StrategyCategory
+  answers?: ReadonlyArray<number>
   misses: MissCounts
   message: string
+  prompt: string
+  hint: string
   /** メッセージが更新されるたびに増える連番。同一文言でも MessageBar のポップを再発火させるために使う。 */
   messageSeq: number
 }
@@ -70,8 +72,12 @@ function puzzleState(puzzles: ReadonlyArray<PracticePuzzle>, puzzleIndex: number
     turn: puzzle.turn,
     puzzleIndex: normalizedIndex,
     legalMoves: moves,
+    category: puzzle.mode === 'strategy' ? puzzle.category : undefined,
+    answers: puzzle.mode === 'strategy' ? puzzle.answers : undefined,
     misses: { ...EMPTY_MISSES },
     message: '',
+    prompt: puzzle.mode === 'strategy' ? STRATEGY_TEXT[puzzle.category].prompt : '',
+    hint: '',
     messageSeq: 0,
   }
 }
@@ -94,6 +100,18 @@ export function tapCell(state: PracticeState, position: number): PracticeState {
         ...state,
         misses: { ...state.misses, placing: state.misses.placing + 1 },
         message: 'そこには　おけないよ！',
+        hint: '',
+        messageSeq: state.messageSeq + 1,
+      }
+    }
+
+    const puzzleAnswers = state.answers
+    if (puzzleAnswers !== undefined && !puzzleAnswers.includes(position)) {
+      return {
+        ...state,
+        misses: { ...state.misses, placing: state.misses.placing + 1 },
+        message: 'ちがうよ！　もういちど',
+        hint: state.category === undefined ? '' : STRATEGY_TEXT[state.category].hint,
         messageSeq: state.messageSeq + 1,
       }
     }
@@ -109,6 +127,7 @@ export function tapCell(state: PracticeState, position: number): PracticeState {
       discsToFlip: new Set(positions),
       flippedPositions: new Set(),
       message: 'ひっくりかえそう',
+      hint: '',
       messageSeq: state.messageSeq + 1,
     }
   }
@@ -179,6 +198,8 @@ function rows(...values: string[]): string {
 /** T005/T006 まで使う、ルール練習用の仮局面。 */
 export const PRACTICE_PUZZLES: ReadonlyArray<PracticePuzzle> = [
   {
+    id: 'rule-opening',
+    mode: 'rule',
     board: rows(
       '--------',
       '--------',
@@ -190,8 +211,11 @@ export const PRACTICE_PUZZLES: ReadonlyArray<PracticePuzzle> = [
       '--------',
     ),
     turn: 'b',
+    difficulty: 1,
   },
   {
+    id: 'rule-white',
+    mode: 'rule',
     board: rows(
       '--------',
       '--------',
@@ -203,8 +227,11 @@ export const PRACTICE_PUZZLES: ReadonlyArray<PracticePuzzle> = [
       '--------',
     ),
     turn: 'w',
+    difficulty: 1,
   },
   {
+    id: 'rule-many-directions',
+    mode: 'rule',
     board: rows(
       '--------',
       '-b-b-b--',
@@ -216,8 +243,11 @@ export const PRACTICE_PUZZLES: ReadonlyArray<PracticePuzzle> = [
       '--------',
     ),
     turn: 'b',
+    difficulty: 3,
   },
   {
+    id: 'rule-corner-black',
+    mode: 'rule',
     board: rows(
       '-wb-----',
       'w-------',
@@ -229,8 +259,11 @@ export const PRACTICE_PUZZLES: ReadonlyArray<PracticePuzzle> = [
       '--------',
     ),
     turn: 'b',
+    difficulty: 2,
   },
   {
+    id: 'rule-corner-white',
+    mode: 'rule',
     board: rows(
       '-----wb-',
       '-------b',
@@ -242,5 +275,21 @@ export const PRACTICE_PUZZLES: ReadonlyArray<PracticePuzzle> = [
       '--------',
     ),
     turn: 'w',
+    difficulty: 2,
   },
 ]
+
+const STRATEGY_TEXT: Record<StrategyCategory, { prompt: string; hint: string }> = {
+  corner: {
+    prompt: 'すみを　とろう',
+    hint: 'すみを　さがしてみよう',
+  },
+  'avoid-x': {
+    prompt: 'ばつの　ばしょは　やめよう',
+    hint: 'すみの　ななめよこは　あぶないよ',
+  },
+  'min-mobility': {
+    prompt: 'あいてが　うてる　ばしょが　すくなくなる　ところに　うとう',
+    hint: 'あいての　おけるばしょを　かぞえてみよう',
+  },
+}

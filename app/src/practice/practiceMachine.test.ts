@@ -13,9 +13,29 @@ import {
 
 const OPENING = '--------'.repeat(3) + '---wb---' + '---bw---' + '--------'.repeat(3)
 const PUZZLES: ReadonlyArray<PracticePuzzle> = [
-  { board: OPENING, turn: 'b' },
-  { board: '-bwwwwww' + 'wwwwwwww'.repeat(7), turn: 'w' },
+  { id: 'test-one', mode: 'rule', board: OPENING, turn: 'b', difficulty: 1 },
+  {
+    id: 'test-two',
+    mode: 'rule',
+    board: '-bwwwwww' + 'wwwwwwww'.repeat(7),
+    turn: 'w',
+    difficulty: 1,
+  },
 ]
+
+function strategyPuzzle(
+  category: 'corner' | 'avoid-x' | 'min-mobility',
+): ReadonlyArray<PracticePuzzle> {
+  return [{
+    id: `strategy-${category}`,
+    mode: 'strategy',
+    category,
+    board: OPENING,
+    turn: 'b',
+    answers: [19],
+    difficulty: 1,
+  }]
+}
 
 function startFlipping(position = 19): FlippingState {
   const state = tapCell(createPracticeState(PUZZLES), position)
@@ -65,6 +85,47 @@ describe('placing', () => {
     expect(twice.message).toBe(once.message)
     expect(twice.messageSeq).not.toBe(once.messageSeq)
     expect(twice.messageSeq).toBe(once.messageSeq + 1)
+  })
+})
+
+describe('strategy placing', () => {
+  it('accepts an answer and joins the shared flipping phase', () => {
+    const before = createPracticeState(strategyPuzzle('corner'))
+    expect(before.prompt).toBe('すみを　とろう')
+    const after = tapCell(before, 19)
+    expect(after.phase).toBe('flipping')
+    expect(after.misses.placing).toBe(0)
+    expect(after.message).toBe('ひっくりかえそう')
+  })
+
+  it.each([
+    ['corner', 'すみを　さがしてみよう'],
+    ['avoid-x', 'すみの　ななめよこは　あぶないよ'],
+    ['min-mobility', 'あいての　おけるばしょを　かぞえてみよう'],
+  ] as const)('rejects a legal non-answer and shows the %s hint', (category, hint) => {
+    const before = createPracticeState(strategyPuzzle(category))
+    const after = tapCell(before, 26)
+    expect(after.phase).toBe('placing')
+    expect(after.misses.placing).toBe(1)
+    expect(after.message).toBe('ちがうよ！　もういちど')
+    expect(after.hint).toBe(hint)
+    expect(after.board).toBe(before.board)
+  })
+
+  it('treats a non-legal tap like rule practice without a category hint', () => {
+    const after = tapCell(createPracticeState(strategyPuzzle('corner')), 0)
+    expect(after.phase).toBe('placing')
+    expect(after.misses.placing).toBe(1)
+    expect(after.message).toBe('そこには　おけないよ！')
+    expect(after.hint).toBe('')
+  })
+
+  it.each([
+    ['corner', 'すみを　とろう'],
+    ['avoid-x', 'ばつの　ばしょは　やめよう'],
+    ['min-mobility', 'あいてが　うてる　ばしょが　すくなくなる　ところに　うとう'],
+  ] as const)('uses the %s prompt', (category, prompt) => {
+    expect(createPracticeState(strategyPuzzle(category)).prompt).toBe(prompt)
   })
 })
 
