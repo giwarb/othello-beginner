@@ -5,8 +5,13 @@ import { HomeScreen } from './home/HomeScreen'
 import { loadHintEnabled, saveHintEnabled } from './home/hintSettings'
 import { PracticeScreen } from './practice/PracticeScreen'
 import type { PracticeSelection } from './practice/practiceMachine'
+import { StampScreen } from './records/StampScreen'
 
-type Screen = { name: 'home' } | { name: 'practice'; selection: PracticeSelection } | { name: 'game' }
+type Screen =
+  | { name: 'home' }
+  | { name: 'practice'; selection: PracticeSelection }
+  | { name: 'game' }
+  | { name: 'stamp' }
 
 export function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' })
@@ -32,12 +37,17 @@ export function App() {
     return <GameScreen onHome={() => setScreen({ name: 'home' })} onComplete={handleComplete} />
   }
 
+  if (screen.name === 'stamp') {
+    return <StampScreen onHome={() => setScreen({ name: 'home' })} />
+  }
+
   return (
     <HomeScreen
       hintEnabled={hintEnabled}
       onHintChange={handleHintChange}
       onSelect={(selection) => setScreen({ name: 'practice', selection })}
       onGame={() => setScreen({ name: 'game' })}
+      onStamp={() => setScreen({ name: 'stamp' })}
     />
   )
 }

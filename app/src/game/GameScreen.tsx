@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks'
 import { Board } from '../components/Board'
 import { MessageBar } from '../components/MessageBar'
 import { TurnBadge } from '../components/TurnBadge'
+import { addCompleted, addWin } from '../records/records'
 import {
   createGameState, finishCpuPass, playCpuTurn, pressGameOk, tapGameCell,
   type GameResult, type GameState,
@@ -28,6 +29,10 @@ export function GameScreen({ onHome, onComplete }: GameScreenProps) {
   useEffect(() => {
     if (state.phase === 'gameOver' && notifiedResult.current !== state.result) {
       notifiedResult.current = state.result
+      addCompleted()
+      if (state.result.outcome === 'win') {
+        addWin()
+      }
       onComplete?.(state.result)
     }
   }, [state, onComplete])

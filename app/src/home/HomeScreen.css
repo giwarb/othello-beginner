@@ -34,6 +34,10 @@
   background: #e36b24;
 }
 
+.home-button-stamp {
+  background: #3a7ca8;
+}
+
 .home-hint-toggle {
   min-width: 10rem;
   min-height: 3.5rem;

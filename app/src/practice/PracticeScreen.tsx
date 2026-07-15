@@ -1,8 +1,9 @@
-import { useRef, useState } from 'preact/hooks'
+import { useEffect, useRef, useState } from 'preact/hooks'
 import { Board } from '../components/Board'
 import { MessageBar } from '../components/MessageBar'
 import { TurnBadge } from '../components/TurnBadge'
 import { GENERATED_PUZZLES } from '../puzzles/generated'
+import { addGreatSuccess } from '../records/records'
 import {
   createPracticeState,
   hintPositions,
@@ -31,6 +32,14 @@ export function PracticeScreen({ selection, hintEnabled, onHome }: PracticeScree
     puzzlesRef.current = poolForSelection(GENERATED_PUZZLES, selection)
   }
   const [state, setState] = useState<PracticeState>(() => createPracticeState(puzzlesRef.current!))
+  const recordedResult = useRef<PracticeState | undefined>(undefined)
+
+  useEffect(() => {
+    if (state.phase === 'result' && state.result === 'だいせいこう' && recordedResult.current !== state) {
+      recordedResult.current = state
+      addGreatSuccess()
+    }
+  }, [state])
 
   const handleNext = () => {
     setState((current) => {

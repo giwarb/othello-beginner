@@ -1,0 +1,87 @@
+.stamp-header {
+  width: min(92vw, 640px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.stamp-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.stamp-button {
+  min-width: 6rem;
+  min-height: 3rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.5rem 1.1rem;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 0.3rem 0 rgba(0, 0, 0, 0.2);
+}
+
+.stamp-button:active {
+  transform: translateY(0.2rem);
+  box-shadow: 0 0.1rem 0 rgba(0, 0, 0, 0.2);
+}
+
+.stamp-button-home {
+  background: #8a8f98;
+}
+
+.stamp-row {
+  width: min(92vw, 34rem);
+  padding: 0.9rem 1.1rem 1.1rem;
+  border-radius: 1.4rem;
+  background: #ffffff;
+  box-shadow: 0 0.25rem 0.8rem rgba(0, 0, 0, 0.15);
+}
+
+.stamp-row-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.stamp-label {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #205026;
+}
+
+.stamp-count {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #347d3e;
+}
+
+.stamp-empty {
+  margin: 0.5rem 0 0;
+  color: #6b7280;
+}
+
+.stamp-grid {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 0.6rem;
+}
+
+.stamp {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.stamp-remainder {
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #347d3e;
+}
