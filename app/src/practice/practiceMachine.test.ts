@@ -57,6 +57,15 @@ describe('placing', () => {
     expect(after.message).toBe('そこには　おけないよ！')
     expect(after.board).toBe(before.board)
   })
+
+  it('advances messageSeq even when the same illegal tap repeats', () => {
+    const before = createPracticeState(PUZZLES)
+    const once = tapCell(before, 0)
+    const twice = tapCell(once, 0)
+    expect(twice.message).toBe(once.message)
+    expect(twice.messageSeq).not.toBe(once.messageSeq)
+    expect(twice.messageSeq).toBe(once.messageSeq + 1)
+  })
 })
 
 describe('temporary puzzles', () => {

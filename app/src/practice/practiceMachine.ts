@@ -24,6 +24,8 @@ interface CommonState {
   legalMoves: ReadonlyArray<number>
   misses: MissCounts
   message: string
+  /** メッセージが更新されるたびに増える連番。同一文言でも MessageBar のポップを再発火させるために使う。 */
+  messageSeq: number
 }
 
 export interface PlacingState extends CommonState {
@@ -70,6 +72,7 @@ function puzzleState(puzzles: ReadonlyArray<PracticePuzzle>, puzzleIndex: number
     legalMoves: moves,
     misses: { ...EMPTY_MISSES },
     message: '',
+    messageSeq: 0,
   }
 }
 
@@ -91,6 +94,7 @@ export function tapCell(state: PracticeState, position: number): PracticeState {
         ...state,
         misses: { ...state.misses, placing: state.misses.placing + 1 },
         message: 'そこには　おけないよ！',
+        messageSeq: state.messageSeq + 1,
       }
     }
 
@@ -105,6 +109,7 @@ export function tapCell(state: PracticeState, position: number): PracticeState {
       discsToFlip: new Set(positions),
       flippedPositions: new Set(),
       message: 'ひっくりかえそう',
+      messageSeq: state.messageSeq + 1,
     }
   }
 
@@ -117,6 +122,7 @@ export function tapCell(state: PracticeState, position: number): PracticeState {
       ...state,
       misses: { ...state.misses, flipping: state.misses.flipping + 1 },
       message: 'そのこまは　ひっくりかえせないよ！',
+      messageSeq: state.messageSeq + 1,
     }
   }
 
@@ -127,6 +133,7 @@ export function tapCell(state: PracticeState, position: number): PracticeState {
     board: nextBoard,
     flippedPositions: new Set([...state.flippedPositions, position]),
     message: 'ひっくりかえそう',
+    messageSeq: state.messageSeq + 1,
   }
 }
 
@@ -140,6 +147,7 @@ export function pressOk(state: PracticeState): PracticeState {
       ...state,
       misses: { ...state.misses, earlyOk: state.misses.earlyOk + 1 },
       message: 'まだ　ひっくりかえる　こまが　あるよ',
+      messageSeq: state.messageSeq + 1,
     }
   }
 
@@ -150,6 +158,7 @@ export function pressOk(state: PracticeState): PracticeState {
     phase: 'result',
     result,
     message: `${result}！`,
+    messageSeq: state.messageSeq + 1,
   }
 }
 

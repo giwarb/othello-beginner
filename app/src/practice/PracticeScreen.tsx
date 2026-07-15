@@ -24,7 +24,7 @@ export function PracticeScreen() {
         lastMove={state.phase === 'flipping' ? state.placedPosition : undefined}
         onCellTap={(position) => setState((current) => tapCell(current, position))}
       />
-      <MessageBar message={state.message} />
+      <MessageBar message={state.message} messageSeq={state.messageSeq} />
 
       {state.phase === 'flipping' && (
         <button class='practice-button practice-button-ok' type='button' onClick={() => setState(pressOk)}>
@@ -36,9 +36,9 @@ export function PracticeScreen() {
         <section class={`practice-result practice-result-${state.result}`} aria-label='けっか'>
           {state.result === 'だいせいこう' && <div class='practice-hanamaru' aria-hidden='true'>◎</div>}
           <dl class='practice-misses'>
-            <div><dt>おく　ミス</dt><dd>{state.misses.placing}かい</dd></div>
-            <div><dt>ひっくりかえし　ミス</dt><dd>{state.misses.flipping}かい</dd></div>
-            <div><dt>はやおし　ミス</dt><dd>{state.misses.earlyOk}かい</dd></div>
+            <div><dt>おいた　ばしょの　まちがい</dt><dd>{state.misses.placing}かい</dd></div>
+            <div><dt>ひっくりかえしの　まちがい</dt><dd>{state.misses.flipping}かい</dd></div>
+            <div><dt>はやおしの　かず</dt><dd>{state.misses.earlyOk}かい</dd></div>
           </dl>
           <button
             class='practice-button practice-button-next'
